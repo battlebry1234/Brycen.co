@@ -1,0 +1,853 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PlayZone – Games • Movies • Music</title>
+  <style>
+    :root {
+      --bg: #0f0f13;
+      --card: #1a1a24;
+      --accent: #7c5cff;
+      --accent2: #ff4d6d;
+      --text: #f0f0f5;
+      --muted: #a0a0b0;
+      --radius: 16px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      min-height: 100vh;
+    }
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(15,15,19,0.93);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid #2a2a35;
+      padding: 1rem 2rem;
+      display: flex; align-items: center; justify-content: space-between;
+      flex-wrap: wrap; gap: 0.8rem;
+    }
+    .logo {
+      font-size: 1.5rem; font-weight: 800;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .nav-links { display: flex; gap: 1.4rem; flex-wrap: wrap; }
+    .nav-links a {
+      color: var(--muted); text-decoration: none; font-weight: 500;
+      transition: color 0.2s;
+    }
+    .nav-links a:hover, .nav-links a.active { color: var(--text); }
+    .hero {
+      text-align: center; padding: 4rem 2rem 3rem;
+      background: radial-gradient(ellipse at top, #1e1a3a 0%, transparent 70%);
+    }
+    .hero h1 {
+      font-size: clamp(2.2rem, 5.5vw, 3.6rem); font-weight: 900;
+      margin-bottom: 0.5rem;
+    }
+    .hero p { color: var(--muted); font-size: 1.1rem; max-width: 560px; margin: 0 auto 1.6rem; }
+    .btn {
+      display: inline-block; padding: 0.75rem 1.6rem;
+      background: var(--accent); color: white; border: none;
+      border-radius: 50px; font-weight: 600; cursor: pointer;
+      text-decoration: none; transition: transform 0.2s, box-shadow 0.2s;
+      font-size: 0.92rem;
+    }
+    .btn:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(124,92,255,0.4); }
+    .btn-secondary { background: transparent; border: 2px solid var(--accent); }
+    .btn-green { background: #22c55e; }
+    .btn-red { background: #ef4444; }
+    section { padding: 3.2rem 2rem; max-width: 1200px; margin: 0 auto; }
+    section h2 {
+      font-size: 1.85rem; margin-bottom: 0.35rem;
+      display: flex; align-items: center; gap: 0.5rem;
+    }
+    section .subtitle { color: var(--muted); margin-bottom: 1.6rem; }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 1.3rem;
+    }
+    .card {
+      background: var(--card);
+      border-radius: var(--radius);
+      overflow: hidden;
+      border: 1px solid #2a2a35;
+      transition: transform 0.25s, box-shadow 0.25s;
+    }
+    .card:hover { transform: translateY(-5px); box-shadow: 0 12px 28px rgba(0,0,0,0.4); }
+    .card img { width: 100%; height: 160px; object-fit: cover; display: block; }
+    .card-body { padding: 1.1rem; }
+    .card-body h3 { margin-bottom: 0.3rem; font-size: 1.02rem; }
+    .card-body p { color: var(--muted); font-size: 0.85rem; margin-bottom: 0.8rem; }
+    .card-body .btn { font-size: 0.82rem; padding: 0.5rem 1rem; margin: 0.2rem 0.2rem 0 0; }
+    .game-area {
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      border: 1px solid #2a2a35;
+      text-align: center;
+      margin-bottom: 1.6rem;
+    }
+    .game-area h3 { margin-bottom: 0.5rem; }
+    .score { font-size: 1.05rem; margin-bottom: 0.7rem; color: var(--accent); }
+    canvas { background: #111; border-radius: 8px; display: block; margin: 0 auto 0.9rem; max-width: 100%; }
+    .game-controls { display: flex; gap: 0.6rem; justify-content: center; flex-wrap: wrap; margin-top: 0.5rem; }
+    .health-bars { display: flex; justify-content: space-between; max-width: 500px; margin: 0 auto 0.7rem; gap: 1rem; }
+    .health-bar-wrap { flex: 1; }
+    .health-bar-wrap span { font-size: 0.82rem; color: var(--muted); }
+    .health-bar { height: 13px; background: #2a2a35; border-radius: 7px; overflow: hidden; margin-top: 3px; }
+    .health-fill { height: 100%; transition: width 0.2s; }
+    .player-health { background: #4ade80; }
+    .enemy-health { background: var(--accent2); }
+    .memory-board {
+      display: grid;
+      grid-template-columns: repeat(4, 66px);
+      gap: 8px;
+      justify-content: center;
+      margin: 0.7rem auto;
+    }
+    .memory-card {
+      width: 66px; height: 66px;
+      background: var(--accent);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.6rem; cursor: pointer;
+      transition: transform 0.3s;
+      user-select: none;
+    }
+    .memory-card.flipped, .memory-card.matched {
+      background: #2a2a35;
+      transform: rotateY(180deg);
+    }
+    .mash-buttons { display: flex; gap: 0.9rem; justify-content: center; margin: 0.9rem 0; flex-wrap: wrap; }
+    .mash-btn {
+      width: 85px; height: 85px; border-radius: 50%;
+      border: 3px solid var(--accent); background: #1e1e2a;
+      color: white; font-size: 1.3rem; font-weight: 700;
+      cursor: pointer; transition: transform 0.1s, background 0.1s;
+    }
+    .mash-btn:active { transform: scale(0.92); background: var(--accent); }
+    .combo-display { font-size: 1.8rem; font-weight: 800; color: var(--accent2); min-height: 2.3rem; }
+    .cod-download {
+      background: linear-gradient(135deg, #1a1a24, #2a1a1a);
+      border: 1px solid #3a2a2a;
+      border-radius: var(--radius);
+      padding: 1.8rem;
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+    .cod-download h3 { margin-bottom: 0.6rem; }
+    .cod-btns { display: flex; gap: 0.8rem; justify-content: center; flex-wrap: wrap; margin-top: 1rem; }
+    .movie-player {
+      background: #000;
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 1rem;
+      aspect-ratio: 16/9;
+    }
+    .movie-player iframe { width: 100%; height: 100%; border: none; }
+    .full-movie-card { margin-bottom: 2.5rem; }
+    .player {
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 1.3rem;
+      border: 1px solid #2a2a35;
+      max-width: 520px;
+      margin: 0 auto 1.6rem;
+    }
+    .player-info { text-align: center; margin-bottom: 0.7rem; }
+    .player-info h3 { margin-bottom: 0.15rem; }
+    .player-info p { color: var(--muted); font-size: 0.88rem; }
+    .progress-bar {
+      height: 6px; background: #2a2a35; border-radius: 3px;
+      margin: 0.8rem 0; cursor: pointer;
+    }
+    .progress { height: 100%; background: var(--accent); border-radius: 3px; width: 0%; }
+    .player-controls {
+      display: flex; justify-content: center; gap: 1.3rem; align-items: center;
+    }
+    .player-controls button {
+      background: none; border: none; color: var(--text);
+      font-size: 1.5rem; cursor: pointer; transition: color 0.2s;
+    }
+    .player-controls button:hover { color: var(--accent); }
+    .playlist { list-style: none; max-width: 520px; margin: 0 auto; }
+    .playlist li {
+      padding: 0.8rem 1rem; border-radius: 10px;
+      display: flex; justify-content: space-between; align-items: center;
+      cursor: pointer; transition: background 0.2s; gap: 0.5rem;
+    }
+    .playlist li:hover, .playlist li.active { background: #252532; }
+    .playlist li.active { color: var(--accent); }
+    .playlist li span:last-child { color: var(--muted); font-size: 0.8rem; white-space: nowrap; }
+    footer {
+      text-align: center; padding: 2rem;
+      color: var(--muted); font-size: 0.88rem;
+      border-top: 1px solid #2a2a35; margin-top: 2rem;
+    }
+    @media (max-width: 600px) {
+      .memory-board { grid-template-columns: repeat(4, 56px); }
+      .memory-card { width: 56px; height: 56px; font-size: 1.3rem; }
+      .mash-btn { width: 72px; height: 72px; font-size: 1.15rem; }
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <div class="logo">PlayZone</div>
+  <div class="nav-links">
+    <a href="#games" class="active">Games</a>
+    <a href="#cod">COD Mobile</a>
+    <a href="#movies">Movies</a>
+    <a href="#music">Music</a>
+  </div>
+</nav>
+
+<header class="hero">
+  <h1>Games • Movies • Music</h1>
+  <p>Play real browser games, watch full public-domain movies, and stream a big free playlist — all in one place.</p>
+  <a href="#games" class="btn">Start Playing</a>
+</header>
+
+<!-- ==================== GAMES ==================== -->
+<section id="games">
+  <h2>🎮 Games</h2>
+  <p class="subtitle">All games are fully playable in your browser.</p>
+
+  <!-- COD-STYLE SHOOTER -->
+  <div class="game-area">
+    <h3>🔫 COD-Style Shooter</h3>
+    <div class="score">Kills: <span id="codKills">0</span> | Health: <span id="codHp">100</span></div>
+    <canvas id="codCanvas" width="500" height="320"></canvas>
+    <p style="color:var(--muted);font-size:0.82rem;margin-bottom:0.5rem;">
+      Move: WASD or Arrows • Shoot: Space or Click
+    </p>
+    <div class="game-controls">
+      <button class="btn" onclick="startCod()">Start Mission</button>
+      <button class="btn btn-secondary" onclick="resetCod()">Reset</button>
+    </div>
+  </div>
+
+  <!-- ARENA FIGHTER -->
+  <div class="game-area">
+    <h3>⚔️ Arena Fighter (vs AI)</h3>
+    <div class="health-bars">
+      <div class="health-bar-wrap">
+        <span>You</span>
+        <div class="health-bar"><div class="health-fill player-health" id="playerHp" style="width:100%"></div></div>
+      </div>
+      <div class="health-bar-wrap">
+        <span>Enemy</span>
+        <div class="health-bar"><div class="health-fill enemy-health" id="enemyHp" style="width:100%"></div></div>
+      </div>
+    </div>
+    <canvas id="fighterCanvas" width="500" height="260"></canvas>
+    <p style="color:var(--muted);font-size:0.82rem;margin-bottom:0.5rem;">
+      A/D or ←/→ move • Space/W = Punch • S = Block
+    </p>
+    <div class="game-controls">
+      <button class="btn" onclick="startFighter()">Start Fight</button>
+      <button class="btn btn-secondary" onclick="resetFighter()">Reset</button>
+    </div>
+  </div>
+
+  <!-- BUTTON MASH -->
+  <div class="game-area">
+    <h3>💥 Button Mash Brawler</h3>
+    <div class="score">Enemy HP: <span id="mashHp">100</span> | Time: <span id="mashTime">15</span>s</div>
+    <div class="mash-buttons">
+      <button class="mash-btn" onmousedown="mashHit(15)" ontouchstart="mashHit(15)">👊 L</button>
+      <button class="mash-btn" onmousedown="mashHit(20)" ontouchstart="mashHit(20)">🤜 R</button>
+      <button class="mash-btn" onmousedown="mashHit(25)" ontouchstart="mashHit(25)">🦵 K</button>
+    </div>
+    <div class="game-controls">
+      <button class="btn" onclick="startMash()">Start Brawl</button>
+    </div>
+  </div>
+
+  <!-- COMBO -->
+  <div class="game-area">
+    <h3>🔥 Combo Trainer</h3>
+    <div class="score">Combo: <span id="comboCount">0</span> | Best: <span id="comboBest">0</span></div>
+    <div class="combo-display" id="comboDisplay">Press the keys!</div>
+    <p style="color:var(--muted);font-size:0.82rem;margin:0.5rem 0;">
+      Sequence: <strong id="comboSequence">A → S → D → Space</strong>
+    </p>
+    <div class="game-controls">
+      <button class="btn" onclick="startCombo()">New Combo</button>
+    </div>
+  </div>
+
+  <!-- SNAKE -->
+  <div class="game-area">
+    <h3>🐍 Snake</h3>
+    <div class="score">Score: <span id="snakeScore">0</span></div>
+    <canvas id="snakeCanvas" width="400" height="400"></canvas>
+    <div class="game-controls">
+      <button class="btn" onclick="startSnake()">Start / Restart</button>
+    </div>
+  </div>
+
+  <!-- MEMORY -->
+  <div class="game-area">
+    <h3>🧠 Memory Match</h3>
+    <div class="score">Moves: <span id="memoryMoves">0</span></div>
+    <div class="memory-board" id="memoryBoard"></div>
+    <div class="game-controls">
+      <button class="btn" onclick="initMemory()">New Game</button>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== COD MOBILE ==================== -->
+<section id="cod">
+  <h2>📱 Call of Duty Mobile</h2>
+  <p class="subtitle">The real game only runs on the official app. Download it here:</p>
+  <div class="cod-download">
+    <h3>Play the official Call of Duty: Mobile</h3>
+    <p style="color:var(--muted);margin-bottom:0.5rem;">Free-to-play battle royale & multiplayer by Activision</p>
+    <div class="cod-btns">
+      <a href="https://play.google.com/store/apps/details?id=com.activision.callofduty.shooter" target="_blank" class="btn btn-green">Google Play</a>
+      <a href="https://apps.apple.com/app/call-of-duty-mobile/id1287282214" target="_blank" class="btn">App Store</a>
+      <a href="https://www.callofduty.com/mobile" target="_blank" class="btn btn-secondary">Official Site</a>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== MOVIES ==================== -->
+<section id="movies">
+  <h2>🎬 Movies</h2>
+  <p class="subtitle">Full public-domain movies you can watch right here + modern films (trailers + legal links).</p>
+
+  <!-- FULL PUBLIC DOMAIN MOVIES -->
+  <h3 style="margin: 2rem 0 1rem; color: var(--accent);">▶️ Full Movies (Public Domain – Watch Now)</h3>
+
+  <div class="full-movie-card">
+    <h4>Night of the Living Dead (1968)</h4>
+    <p style="color:var(--muted);font-size:0.9rem;margin-bottom:0.6rem;">Classic zombie horror – fully public domain.</p>
+    <div class="movie-player">
+      <iframe src="https://archive.org/embed/night_of_the_living_dead" allowfullscreen webkitallowfullscreen="true" mozallowfullscreen="true"></iframe>
+    </div>
+  </div>
+
+  <div class="full-movie-card">
+    <h4>Charade (1963)</h4>
+    <p style="color:var(--muted);font-size:0.9rem;margin-bottom:0.6rem;">Cary Grant & Audrey Hepburn romantic thriller – public domain in the US.</p>
+    <div class="movie-player">
+      <iframe src="https://archive.org/embed/Charade19631280x696" allowfullscreen webkitallowfullscreen="true" mozallowfullscreen="true"></iframe>
+    </div>
+  </div>
+
+  <div class="full-movie-card">
+    <h4>Nosferatu (1922)</h4>
+    <p style="color:var(--muted);font-size:0.9rem;margin-bottom:0.6rem;">The original vampire classic – silent, public domain.</p>
+    <div class="movie-player">
+      <iframe src="https://archive.org/embed/nosferatu" allowfullscreen webkitallowfullscreen="true" mozallowfullscreen="true"></iframe>
+    </div>
+  </div>
+
+  <div class="full-movie-card">
+    <h4>His Girl Friday (1940)</h4>
+    <p style="color:var(--muted);font-size:0.9rem;margin-bottom:0.6rem;">Fast-talking screwball comedy classic.</p>
+    <div class="movie-player">
+      <iframe src="https://archive.org/embed/HisGirlFriday1940" allowfullscreen webkitallowfullscreen="true" mozallowfullscreen="true"></iframe>
+    </div>
+  </div>
+
+  <!-- MODERN MOVIES -->
+  <h3 style="margin: 2.5rem 0 1rem; color: var(--accent);">🎥 Modern Movies (Trailers + Legal Watch Links)</h3>
+  <div class="grid">
+    <div class="card">
+      <img src="https://picsum.photos/seed/darkknight/400/250" alt="The Dark Knight" />
+      <div class="card-body">
+        <h3>The Dark Knight (2008)</h3>
+        <p>Batman faces the Joker.</p>
+        <a href="https://www.youtube.com/watch?v=EXeTwQWrcwY" target="_blank" class="btn">Trailer</a>
+        <a href="https://www.justwatch.com/us/movie/the-dark-knight" target="_blank" class="btn btn-secondary">Where to Watch</a>
+      </div>
+    </div>
+    <div class="card">
+      <img src="https://picsum.photos/seed/inception/400/250" alt="Inception" />
+      <div class="card-body">
+        <h3>Inception (2010)</h3>
+        <p>Dreams within dreams.</p>
+        <a href="https://www.youtube.com/watch?v=YoHD9XEInc0" target="_blank" class="btn">Trailer</a>
+        <a href="https://www.justwatch.com/us/movie/inception" target="_blank" class="btn btn-secondary">Where to Watch</a>
+      </div>
+    </div>
+    <div class="card">
+      <img src="https://picsum.photos/seed/interstellar/400/250" alt="Interstellar" />
+      <div class="card-body">
+        <h3>Interstellar (2014)</h3>
+        <p>A journey beyond the stars.</p>
+        <a href="https://www.youtube.com/watch?v=zSWdZVtXT7E" target="_blank" class="btn">Trailer</a>
+        <a href="https://www.justwatch.com/us/movie/interstellar" target="_blank" class="btn btn-secondary">Where to Watch</a>
+      </div>
+    </div>
+    <div class="card">
+      <img src="https://picsum.photos/seed/matrix/400/250" alt="The Matrix" />
+      <div class="card-body">
+        <h3>The Matrix (1999)</h3>
+        <p>Reality is a simulation.</p>
+        <a href="https://www.youtube.com/watch?v=vKQi3bBA1y8" target="_blank" class="btn">Trailer</a>
+        <a href="https://www.justwatch.com/us/movie/the-matrix" target="_blank" class="btn btn-secondary">Where to Watch</a>
+      </div>
+    </div>
+    <div class="card">
+      <img src="https://picsum.photos/seed/endgame/400/250" alt="Avengers Endgame" />
+      <div class="card-body">
+        <h3>Avengers: Endgame (2019)</h3>
+        <p>The final battle against Thanos.</p>
+        <a href="https://www.youtube.com/watch?v=TcMBFSGVi1c" target="_blank" class="btn">Trailer</a>
+        <a href="https://www.justwatch.com/us/movie/avengers-endgame" target="_blank" class="btn btn-secondary">Where to Watch</a>
+      </div>
+    </div>
+    <div class="card">
+      <img src="https://picsum.photos/seed/dune2/400/250" alt="Dune Part Two" />
+      <div class="card-body">
+        <h3>Dune: Part Two (2024)</h3>
+        <p>Paul Atreides’ war begins.</p>
+        <a href="https://www.youtube.com/watch?v=Way9Dexny3w" target="_blank" class="btn">Trailer</a>
+        <a href="https://www.justwatch.com/us/movie/dune-part-two" target="_blank" class="btn btn-secondary">Where to Watch</a>
+      </div>
+    </div>
+    <div class="card">
+      <img src="https://picsum.photos/seed/oppenheimer/400/250" alt="Oppenheimer" />
+      <div class="card-body">
+        <h3>Oppenheimer (2023)</h3>
+        <p>The man behind the bomb.</p>
+        <a href="https://www.youtube.com/watch?v=uYPbbksJxIg" target="_blank" class="btn">Trailer</a>
+        <a href="https://www.justwatch.com/us/movie/oppenheimer" target="_blank" class="btn btn-secondary">Where to Watch</a>
+      </div>
+    </div>
+    <div class="card">
+      <img src="https://picsum.photos/seed/johnwick/400/250" alt="John Wick" />
+      <div class="card-body">
+        <h3>John Wick (2014)</h3>
+        <p>Don’t kill the dog.</p>
+        <a href="https://www.youtube.com/watch?v=C0BMx-qxsP4" target="_blank" class="btn">Trailer</a>
+        <a href="https://www.justwatch.com/us/movie/john-wick" target="_blank" class="btn btn-secondary">Where to Watch</a>
+      </div>
+    </div>
+    <div class="card">
+      <img src="https://picsum.photos/seed/spiderman/400/250" alt="Spider-Man No Way Home" />
+      <div class="card-body">
+        <h3>Spider-Man: No Way Home (2021)</h3>
+        <p>Multiverse chaos.</p>
+        <a href="https://www.youtube.com/watch?v=JfVOs4VSpmA" target="_blank" class="btn">Trailer</a>
+        <a href="https://www.justwatch.com/us/movie/spider-man-no-way-home" target="_blank" class="btn btn-secondary">Where to Watch</a>
+      </div>
+    </div>
+    <div class="card">
+      <img src="https://picsum.photos/seed/topgun/400/250" alt="Top Gun Maverick" />
+      <div class="card-body">
+        <h3>Top Gun: Maverick (2022)</h3>
+        <p>Need for speed returns.</p>
+        <a href="https://www.youtube.com/watch?v=giXco2jaZ_4" target="_blank" class="btn">Trailer</a>
+        <a href="https://www.justwatch.com/us/movie/top-gun-maverick" target="_blank" class="btn btn-secondary">Where to Watch</a>
+      </div>
+    </div>
+    <div class="card">
+      <img src="https://picsum.photos/seed/parasite/400/250" alt="Parasite" />
+      <div class="card-body">
+        <h3>Parasite (2019)</h3>
+        <p>Class warfare masterpiece.</p>
+        <a href="https://www.youtube.com/watch?v=5xH0HfJHsaY" target="_blank" class="btn">Trailer</a>
+        <a href="https://www.justwatch.com/us/movie/parasite" target="_blank" class="btn btn-secondary">Where to Watch</a>
+      </div>
+    </div>
+    <div class="card">
+      <img src="https://picsum.photos/seed/everything/400/250" alt="Everything Everywhere" />
+      <div class="card-body">
+        <h3>Everything Everywhere All at Once (2022)</h3>
+        <p>Multiverse chaos & bagels.</p>
+        <a href="https://www.youtube.com/watch?v=wxN1U7RgAa8" target="_blank" class="btn">Trailer</a>
+        <a href="https://www.justwatch.com/us/movie/everything-everywhere-all-at-once" target="_blank" class="btn btn-secondary">Where to Watch</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ==================== MUSIC ==================== -->
+<section id="music">
+  <h2>🎵 Music</h2>
+  <p class="subtitle">17 fully playable tracks. Click any song to start.</p>
+
+  <div class="player">
+    <div class="player-info">
+      <h3 id="trackTitle">Select a track</h3>
+      <p id="trackArtist">—</p>
+    </div>
+    <div class="progress-bar" id="progressBar" onclick="seek(event)">
+      <div class="progress" id="progress"></div>
+    </div>
+    <div class="player-controls">
+      <button onclick="prevTrack()">⏮</button>
+      <button onclick="togglePlay()" id="playBtn">▶</button>
+      <button onclick="nextTrack()">⏭</button>
+    </div>
+  </div>
+
+  <ul class="playlist" id="playlist"></ul>
+</section>
+
+<footer>
+  PlayZone • All games playable • Full public-domain movies • Free music • COD Mobile links to official stores only
+</footer>
+
+<script>
+  // ========== COD-STYLE SHOOTER ==========
+  const codCanvas = document.getElementById('codCanvas');
+  const codCtx = codCanvas.getContext('2d');
+  let codRunning = false, codKills = 0, codHp = 100;
+  let playerCod = { x: 250, y: 280, w: 28, h: 28 };
+  let bullets = [], enemies = [], codKeys = {}, codLoop;
+
+  function resetCod() {
+    codKills = 0; codHp = 100;
+    playerCod = { x: 250, y: 280, w: 28, h: 28 };
+    bullets = []; enemies = [];
+    document.getElementById('codKills').textContent = 0;
+    document.getElementById('codHp').textContent = 100;
+    if (codLoop) cancelAnimationFrame(codLoop);
+    codRunning = false;
+    drawCod();
+  }
+
+  function startCod() {
+    resetCod();
+    codRunning = true;
+    for (let i = 0; i < 5; i++) spawnEnemy();
+    codLoop = requestAnimationFrame(updateCod);
+  }
+
+  function spawnEnemy() {
+    enemies.push({
+      x: Math.random() * (codCanvas.width - 30),
+      y: -30 - Math.random() * 100,
+      w: 26, h: 26,
+      speed: 1.2 + Math.random() * 1.5
+    });
+  }
+
+  function drawCod() {
+    codCtx.fillStyle = '#0a0a12';
+    codCtx.fillRect(0, 0, codCanvas.width, codCanvas.height);
+    // player
+    codCtx.fillStyle = '#7c5cff';
+    codCtx.fillRect(playerCod.x, playerCod.y, playerCod.w, playerCod.h);
+    // bullets
+    codCtx.fillStyle = '#fbbf24';
+    bullets.forEach(b => codCtx.fillRect(b.x, b.y, 4, 10));
+    // enemies
+    codCtx.fillStyle = '#ef4444';
+    enemies.forEach(e => codCtx.fillRect(e.x, e.y, e.w, e.h));
+  }
+
+  function updateCod() {
+    if (!codRunning) return;
+    // move player
+    if ((codKeys['a'] || codKeys['ArrowLeft']) && playerCod.x > 0) playerCod.x -= 5;
+    if ((codKeys['d'] || codKeys['ArrowRight']) && playerCod.x < codCanvas.width - playerCod.w) playerCod.x += 5;
+    if ((codKeys['w'] || codKeys['ArrowUp']) && playerCod.y > 0) playerCod.y -= 5;
+    if ((codKeys['s'] || codKeys['ArrowDown']) && playerCod.y < codCanvas.height - playerCod.h) playerCod.y += 5;
+
+    // bullets
+    bullets.forEach(b => b.y -= 8);
+    bullets = bullets.filter(b => b.y > -10);
+
+    // enemies
+    enemies.forEach(e => {
+      e.y += e.speed;
+      // hit player
+      if (e.x < playerCod.x + playerCod.w && e.x + e.w > playerCod.x &&
+          e.y < playerCod.y + playerCod.h && e.y + e.h > playerCod.y) {
+        codHp -= 15;
+        document.getElementById('codHp').textContent = Math.max(0, codHp);
+        e.y = -50;
+        if (codHp <= 0) {
+          codRunning = false;
+          alert('Mission Failed! Kills: ' + codKills);
+        }
+      }
+    });
+    enemies = enemies.filter(e => e.y < codCanvas.height + 40);
+    while (enemies.length < 6) spawnEnemy();
+
+    // collisions
+    bullets.forEach((b, bi) => {
+      enemies.forEach((e, ei) => {
+        if (b.x < e.x + e.w && b.x + 4 > e.x && b.y < e.y + e.h && b.y + 10 > e.y) {
+          enemies.splice(ei, 1);
+          bullets.splice(bi, 1);
+          codKills++;
+          document.getElementById('codKills').textContent = codKills;
+        }
+      });
+    });
+
+    drawCod();
+    codLoop = requestAnimationFrame(updateCod);
+  }
+
+  function shootCod() {
+    if (!codRunning) return;
+    bullets.push({ x: playerCod.x + playerCod.w / 2 - 2, y: playerCod.y });
+  }
+
+  document.addEventListener('keydown', e => {
+    codKeys[e.key] = true;
+    if (e.key === ' ' || e.key === 'Spacebar') { e.preventDefault(); shootCod(); }
+  });
+  document.addEventListener('keyup', e => { codKeys[e.key] = false; });
+  codCanvas.addEventListener('click', shootCod);
+
+  // ========== ARENA FIGHTER (same as before) ==========
+  const fCanvas = document.getElementById('fighterCanvas');
+  const fCtx = fCanvas.getContext('2d');
+  let fighterRunning = false;
+  let player = { x: 80, y: 160, w: 40, h: 70, hp: 100, facing: 1, attack: 0, attackCooldown: 0, block: false };
+  let enemy = { x: 380, y: 160, w: 40, h: 70, hp: 100, facing: -1, attack: 0, attackCooldown: 0 };
+  let keys = {};
+  let fighterLoop;
+
+  function resetFighter() {
+    player.hp = 100; enemy.hp = 100;
+    player.x = 80; enemy.x = 380;
+    player.attack = 0; enemy.attack = 0; player.block = false;
+    updateHpBars(); drawFighter();
+    if (fighterLoop) cancelAnimationFrame(fighterLoop);
+    fighterRunning = false;
+  }
+  function startFighter() { resetFighter(); fighterRunning = true; fighterLoop = requestAnimationFrame(updateFighter); }
+  function updateHpBars() {
+    document.getElementById('playerHp').style.width = Math.max(0, player.hp) + '%';
+    document.getElementById('enemyHp').style.width = Math.max(0, enemy.hp) + '%';
+  }
+  function drawFighter() {
+    fCtx.fillStyle = '#111'; fCtx.fillRect(0, 0, fCanvas.width, fCanvas.height);
+    fCtx.fillStyle = '#1a1a24'; fCtx.fillRect(0, 230, fCanvas.width, 30);
+    fCtx.fillStyle = player.attack > 0 ? '#a78bfa' : '#7c5cff';
+    fCtx.fillRect(player.x, player.y, player.w, player.h);
+    if (player.attack > 0) { fCtx.fillStyle = '#c4b5fd'; fCtx.fillRect(player.x + (player.facing > 0 ? player.w : -25), player.y + 20, 25, 18); }
+    if (player.block) { fCtx.fillStyle = '#4ade80'; fCtx.fillRect(player.x + (player.facing > 0 ? player.w - 8 : -5), player.y + 15, 12, 40); }
+    fCtx.fillStyle = enemy.attack > 0 ? '#fb7185' : '#ff4d6d';
+    fCtx.fillRect(enemy.x, enemy.y, enemy.w, enemy.h);
+    if (enemy.attack > 0) { fCtx.fillStyle = '#fda4af'; fCtx.fillRect(enemy.x + (enemy.facing > 0 ? enemy.w : -25), enemy.y + 20, 25, 18); }
+  }
+  function updateFighter() {
+    if (!fighterRunning) return;
+    if ((keys['a'] || keys['ArrowLeft']) && player.x > 10) player.x -= 4;
+    if ((keys['d'] || keys['ArrowRight']) && player.x < 220) player.x += 4;
+    player.block = !!(keys['s'] || keys['S']);
+    if ((keys[' '] || keys['w'] || keys['W']) && player.attackCooldown <= 0 && !player.block) {
+      player.attack = 12; player.attackCooldown = 25;
+      if (Math.abs((player.x + player.w/2) - (enemy.x + enemy.w/2)) < 70) { enemy.hp -= 12; updateHpBars(); }
+    }
+    if (player.attack > 0) player.attack--;
+    if (player.attackCooldown > 0) player.attackCooldown--;
+    if (enemy.attackCooldown <= 0 && Math.random() < 0.03) {
+      enemy.attack = 12; enemy.attackCooldown = 35;
+      if (Math.abs((player.x + player.w/2) - (enemy.x + enemy.w/2)) < 70 && !player.block) { player.hp -= 10; updateHpBars(); }
+    }
+    if (enemy.attack > 0) enemy.attack--;
+    if (enemy.attackCooldown > 0) enemy.attackCooldown--;
+    if (enemy.x > player.x + 60) enemy.x -= 2.2; else if (enemy.x < player.x + 40) enemy.x += 2.2;
+    drawFighter();
+    if (player.hp <= 0 || enemy.hp <= 0) {
+      fighterRunning = false;
+      setTimeout(() => alert(player.hp <= 0 ? 'You lost!' : 'You won!'), 80);
+      return;
+    }
+    fighterLoop = requestAnimationFrame(updateFighter);
+  }
+  document.addEventListener('keydown', e => { keys[e.key] = true; });
+  document.addEventListener('keyup', e => { keys[e.key] = false; });
+
+  // ========== BUTTON MASH ==========
+  let mashHp = 100, mashTimer = null, mashTimeLeft = 15, mashActive = false;
+  function startMash() {
+    if (mashActive) return;
+    mashHp = 100; mashTimeLeft = 15; mashActive = true;
+    document.getElementById('mashHp').textContent = mashHp;
+    document.getElementById('mashTime').textContent = mashTimeLeft;
+    mashTimer = setInterval(() => {
+      mashTimeLeft--; document.getElementById('mashTime').textContent = mashTimeLeft;
+      if (mashTimeLeft <= 0) { clearInterval(mashTimer); mashActive = false; alert(mashHp <= 0 ? 'KO!' : 'Time up! HP left: ' + mashHp); }
+    }, 1000);
+  }
+  function mashHit(dmg) {
+    if (!mashActive || mashHp <= 0) return;
+    mashHp = Math.max(0, mashHp - dmg);
+    document.getElementById('mashHp').textContent = mashHp;
+    if (mashHp <= 0) { clearInterval(mashTimer); mashActive = false; alert('KO! You win!'); }
+  }
+
+  // ========== COMBO ==========
+  const comboKeys = ['a', 's', 'd', ' '];
+  let comboSequence = [], comboIndex = 0, comboCount = 0, comboBest = 0, comboActive = false;
+  function startCombo() {
+    comboSequence = []; for (let i = 0; i < 4; i++) comboSequence.push(comboKeys[Math.floor(Math.random() * 4)]);
+    comboIndex = 0; comboCount = 0; comboActive = true;
+    document.getElementById('comboCount').textContent = 0;
+    document.getElementById('comboSequence').textContent = comboSequence.map(k => k === ' ' ? 'Space' : k.toUpperCase()).join(' → ');
+    document.getElementById('comboDisplay').textContent = 'Go!';
+  }
+  document.addEventListener('keydown', e => {
+    if (!comboActive) return;
+    const key = e.key.toLowerCase();
+    if (key === comboSequence[comboIndex] || (comboSequence[comboIndex] === ' ' && key === ' ')) {
+      comboIndex++;
+      if (comboIndex >= comboSequence.length) {
+        comboCount++; document.getElementById('comboCount').textContent = comboCount;
+        if (comboCount > comboBest) { comboBest = comboCount; document.getElementById('comboBest').textContent = comboBest; }
+        document.getElementById('comboDisplay').textContent = 'COMBO x' + comboCount + '!';
+        comboSequence = []; for (let i = 0; i < 4; i++) comboSequence.push(comboKeys[Math.floor(Math.random() * 4)]);
+        comboIndex = 0;
+        document.getElementById('comboSequence').textContent = comboSequence.map(k => k === ' ' ? 'Space' : k.toUpperCase()).join(' → ');
+      }
+    } else if (['a','s','d',' '].includes(key)) {
+      comboIndex = 0; document.getElementById('comboDisplay').textContent = 'Miss!';
+    }
+  });
+
+  // ========== SNAKE ==========
+  const canvas = document.getElementById('snakeCanvas');
+  const ctx = canvas.getContext('2d');
+  const grid = 20;
+  let snake, food, dx, dy, score, gameLoop;
+  function startSnake() {
+    snake = [{x:10,y:10}]; food = {x:15,y:15}; dx=1; dy=0; score=0;
+    document.getElementById('snakeScore').textContent = 0;
+    if (gameLoop) clearInterval(gameLoop);
+    gameLoop = setInterval(drawSnake, 100);
+  }
+  function drawSnake() {
+    const head = {x: snake[0].x + dx, y: snake[0].y + dy};
+    if (head.x < 0 || head.x >= 20 || head.y < 0 || head.y >= 20 || snake.some(s => s.x===head.x && s.y===head.y)) {
+      clearInterval(gameLoop); alert('Game Over! Score: ' + score); return;
+    }
+    snake.unshift(head);
+    if (head.x === food.x && head.y === food.y) {
+      score += 10; document.getElementById('snakeScore').textContent = score;
+      food = {x: Math.floor(Math.random()*20), y: Math.floor(Math.random()*20)};
+    } else snake.pop();
+    ctx.fillStyle = '#111'; ctx.fillRect(0,0,400,400);
+    ctx.fillStyle = '#7c5cff'; snake.forEach(s => ctx.fillRect(s.x*grid, s.y*grid, grid-1, grid-1));
+    ctx.fillStyle = '#ff4d6d'; ctx.fillRect(food.x*grid, food.y*grid, grid-1, grid-1);
+  }
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowUp' && dy !== 1) { dx=0; dy=-1; }
+    if (e.key === 'ArrowDown' && dy !== -1) { dx=0; dy=1; }
+    if (e.key === 'ArrowLeft' && dx !== 1) { dx=-1; dy=0; }
+    if (e.key === 'ArrowRight' && dx !== -1) { dx=1; dy=0; }
+  });
+
+  // ========== MEMORY ==========
+  const emojis = ['🚀','🎮','🎬','🎵','🌟','🔥','💎','🦄'];
+  let cards=[], flipped=[], matched=0, moves=0, lock=false;
+  function initMemory() {
+    cards = [...emojis,...emojis].sort(() => Math.random()-0.5);
+    flipped=[]; matched=0; moves=0; lock=false;
+    document.getElementById('memoryMoves').textContent = 0;
+    const board = document.getElementById('memoryBoard'); board.innerHTML = '';
+    cards.forEach((emoji,i) => {
+      const card = document.createElement('div');
+      card.className = 'memory-card';
+      card.onclick = () => flipCard(card, emoji);
+      board.appendChild(card);
+    });
+  }
+  function flipCard(card, emoji) {
+    if (lock || card.classList.contains('flipped') || card.classList.contains('matched')) return;
+    card.classList.add('flipped'); card.textContent = emoji;
+    flipped.push({card, emoji});
+    if (flipped.length === 2) {
+      moves++; document.getElementById('memoryMoves').textContent = moves; lock = true;
+      if (flipped[0].emoji === flipped[1].emoji) {
+        flipped.forEach(f => f.card.classList.add('matched')); matched += 2; flipped = []; lock = false;
+        if (matched === 16) setTimeout(() => alert('You won in ' + moves + ' moves!'), 300);
+      } else {
+        setTimeout(() => { flipped.forEach(f => { f.card.classList.remove('flipped'); f.card.textContent=''; }); flipped=[]; lock=false; }, 700);
+      }
+    }
+  }
+
+  // ========== MUSIC ==========
+  const tracks = [
+    { title: "Horizon Pulse", artist: "SoundHelix", src: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" },
+    { title: "Night Runner", artist: "SoundHelix", src: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3" },
+    { title: "Crystal Drift", artist: "SoundHelix", src: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3" },
+    { title: "Neon Streets", artist: "SoundHelix", src: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3" },
+    { title: "Echo Chamber", artist: "SoundHelix", src: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3" },
+    { title: "Solar Flare", artist: "SoundHelix", src: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-6.mp3" },
+    { title: "Midnight Drive", artist: "SoundHelix", src: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-7.mp3" },
+    { title: "Electric Dreams", artist: "SoundHelix", src: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3" },
+    { title: "Velvet Sky", artist: "SoundHelix", src: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-9.mp3" },
+    { title: "Quantum Beat", artist: "SoundHelix", src: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-10.mp3" },
+    { title: "Aurora Wave", artist: "SoundHelix", src: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-11.mp3" },
+    { title: "Shadow Protocol", artist: "SoundHelix", src: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-12.mp3" },
+    { title: "Cosmic Drift", artist: "SoundHelix", src: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-13.mp3" },
+    { title: "Iron Pulse", artist: "SoundHelix", src: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-14.mp3" },
+    { title: "Lunar Echo", artist: "SoundHelix", src: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-15.mp3" },
+    { title: "Phoenix Rise", artist: "SoundHelix", src: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-16.mp3" },
+    { title: "Stationary Ark", artist: "SoundHelix", src: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-17.mp3" }
+  ];
+  let current = 0;
+  const audio = new Audio();
+  const playBtn = document.getElementById('playBtn');
+  const progress = document.getElementById('progress');
+  const playlistEl = document.getElementById('playlist');
+
+  function loadTrack(i) {
+    current = i; audio.src = tracks[i].src;
+    document.getElementById('trackTitle').textContent = tracks[i].title;
+    document.getElementById('trackArtist').textContent = tracks[i].artist;
+    document.querySelectorAll('.playlist li').forEach((li, idx) => li.classList.toggle('active', idx === i));
+  }
+  function togglePlay() {
+    if (audio.paused) { audio.play(); playBtn.textContent = '⏸'; }
+    else { audio.pause(); playBtn.textContent = '▶'; }
+  }
+  function nextTrack() { loadTrack((current + 1) % tracks.length); audio.play(); playBtn.textContent = '⏸'; }
+  function prevTrack() { loadTrack((current - 1 + tracks.length) % tracks.length); audio.play(); playBtn.textContent = '⏸'; }
+  function seek(e) {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const pct = (e.clientX - rect.left) / rect.width;
+    if (audio.duration) audio.currentTime = pct * audio.duration;
+  }
+  audio.addEventListener('timeupdate', () => { if (audio.duration) progress.style.width = (audio.currentTime / audio.duration * 100) + '%'; });
+  audio.addEventListener('ended', nextTrack);
+
+  tracks.forEach((t, i) => {
+    const li = document.createElement('li');
+    li.innerHTML = `<span>${t.title}</span><span>${t.artist}</span>`;
+    li.onclick = () => { loadTrack(i); audio.play(); playBtn.textContent = '⏸'; };
+    playlistEl.appendChild(li);
+  });
+
+  // Init
+  loadTrack(0);
+  initMemory();
+  drawCod();
+  drawFighter();
+
+  // Smooth nav
+  document.querySelectorAll('.nav-links a').forEach(a => {
+    a.addEventListener('click', e => {
+      e.preventDefault();
+      document.querySelector(a.getAttribute('href')).scrollIntoView({ behavior: 'smooth' });
+      document.querySelectorAll('.nav-links a').forEach(l => l.classList.remove('active'));
+      a.classList.add('active');
+    });
+  });
+</script>
+</body>
+</html>
