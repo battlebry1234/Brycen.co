@@ -102,6 +102,19 @@
       cursor: pointer; transition: transform 0.15s;
     }
     .panic-btn:hover { transform: scale(1.02); }
+    .location-btn {
+      width: 100%; padding: 0.85rem; margin-top: 0.4rem;
+      background: var(--accent); color: white; border: none;
+      border-radius: 12px; font-weight: 600; font-size: 0.95rem;
+      cursor: pointer;
+    }
+    .location-result {
+      margin-top: 0.8rem; padding: 0.9rem;
+      background: #12121a; border-radius: 10px;
+      font-size: 0.9rem; line-height: 1.5;
+      display: none;
+    }
+    .location-result.show { display: block; }
     .reset-btn {
       width: 100%; padding: 0.7rem; margin-top: 0.8rem;
       background: transparent; border: 1px solid #3a3a4a;
@@ -336,6 +349,13 @@
     </div>
 
     <div class="setting-group">
+      <label>My Approximate Location</label>
+      <p>Shows only <strong>your</strong> rough location (city/country). Nothing is shared with anyone else.</p>
+      <button class="location-btn" onclick="getMyLocation()">📍 Show My Approximate Location</button>
+      <div class="location-result" id="locationResult"></div>
+    </div>
+
+    <div class="setting-group">
       <label>Panic Button</label>
       <p>Instantly leave this page (also works with the ` key)</p>
       <button class="panic-btn" onclick="panicExit()">🚨 Exit Tab / Go to Google</button>
@@ -507,24 +527,6 @@
         <a href="https://www.justwatch.com/us/movie/the-matrix" target="_blank" class="btn btn-secondary">Where to Watch</a>
       </div>
     </div>
-    <div class="card">
-      <img src="https://picsum.photos/seed/endgame/400/250" alt="Avengers Endgame" />
-      <div class="card-body">
-        <h3>Avengers: Endgame (2019)</h3>
-        <p>The final battle against Thanos.</p>
-        <a href="https://www.youtube.com/watch?v=TcMBFSGVi1c" target="_blank" class="btn">Trailer</a>
-        <a href="https://www.justwatch.com/us/movie/avengers-endgame" target="_blank" class="btn btn-secondary">Where to Watch</a>
-      </div>
-    </div>
-    <div class="card">
-      <img src="https://picsum.photos/seed/dune2/400/250" alt="Dune Part Two" />
-      <div class="card-body">
-        <h3>Dune: Part Two (2024)</h3>
-        <p>Paul Atreides’ war begins.</p>
-        <a href="https://www.youtube.com/watch?v=Way9Dexny3w" target="_blank" class="btn">Trailer</a>
-        <a href="https://www.justwatch.com/us/movie/dune-part-two" target="_blank" class="btn btn-secondary">Where to Watch</a>
-      </div>
-    </div>
   </div>
 </section>
 
@@ -592,9 +594,7 @@
   }
 
   function panicExit() {
-    // Try to close the tab, otherwise redirect
     window.open('https://www.google.com', '_self');
-    // Alternative: window.location.replace('https://www.google.com');
   }
 
   function resetSettings() {
@@ -602,6 +602,35 @@
     localStorage.removeItem('pz-title');
     localStorage.removeItem('pz-icon');
     location.reload();
+  }
+
+  // ========== MY LOCATION (only current user) ==========
+  async function getMyLocation() {
+    const resultEl = document.getElementById('locationResult');
+    resultEl.classList.add('show');
+    resultEl.innerHTML = 'Looking up approximate location…';
+
+    try {
+      // Free IP-based geolocation (approximate city/country only)
+      const res = await fetch('https://ipapi.co/json/');
+      if (!res.ok) throw new Error('Network error');
+      const data = await res.json();
+
+      const city = data.city || 'Unknown city';
+      const region = data.region || data.region_code || '';
+      const country = data.country_name || data.country || 'Unknown country';
+      const ip = data.ip ? data.ip.replace(/\.\d+$/, '.xxx') : 'hidden'; // partially mask IP
+
+      resultEl.innerHTML = `
+        <strong>Your approximate location</strong><br>
+        ${city}${region ? ', ' + region : ''}<br>
+        ${country}<br>
+        <span style="color:var(--muted);font-size:0.8rem">IP partially hidden: ${ip}</span><br>
+        <span style="color:var(--muted);font-size:0.78rem">This is only shown to you. Nothing is shared with other users.</span>
+      `;
+    } catch (err) {
+      resultEl.innerHTML = 'Could not retrieve location. Try again later or check your connection.';
+    }
   }
 
   // Load saved settings
@@ -631,14 +660,13 @@
   document.addEventListener('keydown', e => {
     if (e.key === '`') {
       e.preventDefault();
-      // Quickly cloak to Google then exit
       document.title = 'Google';
       document.getElementById('favicon').href = 'https://www.google.com/favicon.ico';
       setTimeout(panicExit, 150);
     }
   });
 
-  // ========== GAMES (same as before) ==========
+  // ========== GAMES ==========
   // COD-STYLE SHOOTER
   const codCanvas = document.getElementById('codCanvas');
   const codCtx = codCanvas.getContext('2d');
