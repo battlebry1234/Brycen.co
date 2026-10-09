@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>PlayZone – Games • Movies • Music</title>
+  <link id="favicon" rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎮</text></svg>">
   <style>
     :root {
       --bg: #0f0f13;
@@ -21,6 +22,7 @@
       color: var(--text);
       line-height: 1.5;
       min-height: 100vh;
+      transition: background 0.4s ease;
     }
     nav {
       position: sticky; top: 0; z-index: 100;
@@ -36,12 +38,76 @@
       background: linear-gradient(90deg, var(--accent), var(--accent2));
       -webkit-background-clip: text; -webkit-text-fill-color: transparent;
     }
-    .nav-links { display: flex; gap: 1.4rem; flex-wrap: wrap; }
+    .nav-links { display: flex; gap: 1.4rem; flex-wrap: wrap; align-items: center; }
     .nav-links a {
       color: var(--muted); text-decoration: none; font-weight: 500;
       transition: color 0.2s;
     }
     .nav-links a:hover, .nav-links a.active { color: var(--text); }
+    .settings-btn {
+      background: none; border: none; color: var(--muted);
+      font-size: 1.4rem; cursor: pointer; padding: 0.3rem;
+      transition: color 0.2s;
+    }
+    .settings-btn:hover { color: var(--accent); }
+
+    /* SETTINGS PANEL */
+    .settings-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+      z-index: 1000; display: none; align-items: center; justify-content: center;
+    }
+    .settings-overlay.open { display: flex; }
+    .settings-panel {
+      background: var(--card);
+      border: 1px solid #2a2a35;
+      border-radius: 20px;
+      width: 90%; max-width: 420px;
+      max-height: 90vh; overflow-y: auto;
+      padding: 1.8rem;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+    }
+    .settings-panel h2 {
+      margin-bottom: 1.4rem;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .close-settings {
+      background: none; border: none; color: var(--muted);
+      font-size: 1.5rem; cursor: pointer;
+    }
+    .setting-group { margin-bottom: 1.6rem; }
+    .setting-group label {
+      display: block; font-weight: 600; margin-bottom: 0.5rem;
+      font-size: 0.95rem;
+    }
+    .setting-group p { color: var(--muted); font-size: 0.82rem; margin-bottom: 0.6rem; }
+    .bg-options, .cloak-options {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.6rem;
+    }
+    .bg-option, .cloak-option {
+      padding: 0.7rem; border-radius: 10px; border: 2px solid #2a2a35;
+      background: #12121a; cursor: pointer; text-align: center;
+      font-size: 0.8rem; transition: border-color 0.2s;
+    }
+    .bg-option:hover, .cloak-option:hover,
+    .bg-option.active, .cloak-option.active {
+      border-color: var(--accent);
+    }
+    .bg-preview {
+      height: 28px; border-radius: 6px; margin-bottom: 0.35rem;
+    }
+    .panic-btn {
+      width: 100%; padding: 0.9rem; margin-top: 0.5rem;
+      background: var(--accent2); color: white; border: none;
+      border-radius: 12px; font-weight: 700; font-size: 1rem;
+      cursor: pointer; transition: transform 0.15s;
+    }
+    .panic-btn:hover { transform: scale(1.02); }
+    .reset-btn {
+      width: 100%; padding: 0.7rem; margin-top: 0.8rem;
+      background: transparent; border: 1px solid #3a3a4a;
+      color: var(--muted); border-radius: 10px; cursor: pointer;
+    }
+
     .hero {
       text-align: center; padding: 4rem 2rem 3rem;
       background: radial-gradient(ellipse at top, #1e1a3a 0%, transparent 70%);
@@ -61,7 +127,6 @@
     .btn:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(124,92,255,0.4); }
     .btn-secondary { background: transparent; border: 2px solid var(--accent); }
     .btn-green { background: #22c55e; }
-    .btn-red { background: #ef4444; }
     section { padding: 3.2rem 2rem; max-width: 1200px; margin: 0 auto; }
     section h2 {
       font-size: 1.85rem; margin-bottom: 0.35rem;
@@ -195,6 +260,7 @@
       .memory-board { grid-template-columns: repeat(4, 56px); }
       .memory-card { width: 56px; height: 56px; font-size: 1.3rem; }
       .mash-btn { width: 72px; height: 72px; font-size: 1.15rem; }
+      .bg-options, .cloak-options { grid-template-columns: repeat(2, 1fr); }
     }
   </style>
 </head>
@@ -207,58 +273,114 @@
     <a href="#cod">COD Mobile</a>
     <a href="#movies">Movies</a>
     <a href="#music">Music</a>
+    <button class="settings-btn" onclick="openSettings()" title="Settings">⚙️</button>
   </div>
 </nav>
 
+<!-- SETTINGS PANEL -->
+<div class="settings-overlay" id="settingsOverlay">
+  <div class="settings-panel">
+    <h2>
+      Settings
+      <button class="close-settings" onclick="closeSettings()">×</button>
+    </h2>
+
+    <div class="setting-group">
+      <label>Background</label>
+      <p>Change the page background</p>
+      <div class="bg-options" id="bgOptions">
+        <div class="bg-option active" data-bg="#0f0f13" onclick="setBackground(this)">
+          <div class="bg-preview" style="background:#0f0f13"></div>Dark
+        </div>
+        <div class="bg-option" data-bg="#111827" onclick="setBackground(this)">
+          <div class="bg-preview" style="background:#111827"></div>Midnight
+        </div>
+        <div class="bg-option" data-bg="linear-gradient(135deg,#0f0f13,#1e1a3a)" onclick="setBackground(this)">
+          <div class="bg-preview" style="background:linear-gradient(135deg,#0f0f13,#1e1a3a)"></div>Purple
+        </div>
+        <div class="bg-option" data-bg="linear-gradient(135deg,#0f0f13,#1a2a1a)" onclick="setBackground(this)">
+          <div class="bg-preview" style="background:linear-gradient(135deg,#0f0f13,#1a2a1a)"></div>Forest
+        </div>
+        <div class="bg-option" data-bg="linear-gradient(135deg,#0f0f13,#2a1a1a)" onclick="setBackground(this)">
+          <div class="bg-preview" style="background:linear-gradient(135deg,#0f0f13,#2a1a1a)"></div>Crimson
+        </div>
+        <div class="bg-option" data-bg="#000000" onclick="setBackground(this)">
+          <div class="bg-preview" style="background:#000"></div>Black
+        </div>
+      </div>
+    </div>
+
+    <div class="setting-group">
+      <label>Tab Cloaking</label>
+      <p>Make the browser tab look like another site</p>
+      <div class="cloak-options" id="cloakOptions">
+        <div class="cloak-option active" data-title="PlayZone – Games • Movies • Music" data-icon="🎮" onclick="setCloak(this)">
+          PlayZone
+        </div>
+        <div class="cloak-option" data-title="Google" data-icon="https://www.google.com/favicon.ico" onclick="setCloak(this)">
+          Google
+        </div>
+        <div class="cloak-option" data-title="Google Docs" data-icon="https://ssl.gstatic.com/docs/documents/images/kix-favicon7.ico" onclick="setCloak(this)">
+          Docs
+        </div>
+        <div class="cloak-option" data-title="Google Classroom" data-icon="https://ssl.gstatic.com/classroom/favicon.png" onclick="setCloak(this)">
+          Classroom
+        </div>
+        <div class="cloak-option" data-title="Canvas" data-icon="https://du11hjcvx0uqb.cloudfront.net/dist/images/favicon-e10d657a73.ico" onclick="setCloak(this)">
+          Canvas
+        </div>
+        <div class="cloak-option" data-title="YouTube" data-icon="https://www.youtube.com/s/desktop/favicon.ico" onclick="setCloak(this)">
+          YouTube
+        </div>
+      </div>
+    </div>
+
+    <div class="setting-group">
+      <label>Panic Button</label>
+      <p>Instantly leave this page (also works with the ` key)</p>
+      <button class="panic-btn" onclick="panicExit()">🚨 Exit Tab / Go to Google</button>
+    </div>
+
+    <button class="reset-btn" onclick="resetSettings()">Reset All Settings</button>
+  </div>
+</div>
+
 <header class="hero">
   <h1>Games • Movies • Music</h1>
-  <p>Play real browser games, watch full public-domain movies, and stream a big free playlist — all in one place.</p>
+  <p>Play real browser games, watch full public-domain movies, and stream a free playlist — all in one place.</p>
   <a href="#games" class="btn">Start Playing</a>
 </header>
 
-<!-- ==================== GAMES ==================== -->
+<!-- GAMES -->
 <section id="games">
   <h2>🎮 Games</h2>
   <p class="subtitle">All games are fully playable in your browser.</p>
 
-  <!-- COD-STYLE SHOOTER -->
   <div class="game-area">
     <h3>🔫 COD-Style Shooter</h3>
     <div class="score">Kills: <span id="codKills">0</span> | Health: <span id="codHp">100</span></div>
     <canvas id="codCanvas" width="500" height="320"></canvas>
-    <p style="color:var(--muted);font-size:0.82rem;margin-bottom:0.5rem;">
-      Move: WASD or Arrows • Shoot: Space or Click
-    </p>
+    <p style="color:var(--muted);font-size:0.82rem;margin-bottom:0.5rem;">Move: WASD or Arrows • Shoot: Space or Click</p>
     <div class="game-controls">
       <button class="btn" onclick="startCod()">Start Mission</button>
       <button class="btn btn-secondary" onclick="resetCod()">Reset</button>
     </div>
   </div>
 
-  <!-- ARENA FIGHTER -->
   <div class="game-area">
     <h3>⚔️ Arena Fighter (vs AI)</h3>
     <div class="health-bars">
-      <div class="health-bar-wrap">
-        <span>You</span>
-        <div class="health-bar"><div class="health-fill player-health" id="playerHp" style="width:100%"></div></div>
-      </div>
-      <div class="health-bar-wrap">
-        <span>Enemy</span>
-        <div class="health-bar"><div class="health-fill enemy-health" id="enemyHp" style="width:100%"></div></div>
-      </div>
+      <div class="health-bar-wrap"><span>You</span><div class="health-bar"><div class="health-fill player-health" id="playerHp" style="width:100%"></div></div></div>
+      <div class="health-bar-wrap"><span>Enemy</span><div class="health-bar"><div class="health-fill enemy-health" id="enemyHp" style="width:100%"></div></div></div>
     </div>
     <canvas id="fighterCanvas" width="500" height="260"></canvas>
-    <p style="color:var(--muted);font-size:0.82rem;margin-bottom:0.5rem;">
-      A/D or ←/→ move • Space/W = Punch • S = Block
-    </p>
+    <p style="color:var(--muted);font-size:0.82rem;margin-bottom:0.5rem;">A/D or ←/→ move • Space/W = Punch • S = Block</p>
     <div class="game-controls">
       <button class="btn" onclick="startFighter()">Start Fight</button>
       <button class="btn btn-secondary" onclick="resetFighter()">Reset</button>
     </div>
   </div>
 
-  <!-- BUTTON MASH -->
   <div class="game-area">
     <h3>💥 Button Mash Brawler</h3>
     <div class="score">Enemy HP: <span id="mashHp">100</span> | Time: <span id="mashTime">15</span>s</div>
@@ -267,46 +389,33 @@
       <button class="mash-btn" onmousedown="mashHit(20)" ontouchstart="mashHit(20)">🤜 R</button>
       <button class="mash-btn" onmousedown="mashHit(25)" ontouchstart="mashHit(25)">🦵 K</button>
     </div>
-    <div class="game-controls">
-      <button class="btn" onclick="startMash()">Start Brawl</button>
-    </div>
+    <div class="game-controls"><button class="btn" onclick="startMash()">Start Brawl</button></div>
   </div>
 
-  <!-- COMBO -->
   <div class="game-area">
     <h3>🔥 Combo Trainer</h3>
     <div class="score">Combo: <span id="comboCount">0</span> | Best: <span id="comboBest">0</span></div>
     <div class="combo-display" id="comboDisplay">Press the keys!</div>
-    <p style="color:var(--muted);font-size:0.82rem;margin:0.5rem 0;">
-      Sequence: <strong id="comboSequence">A → S → D → Space</strong>
-    </p>
-    <div class="game-controls">
-      <button class="btn" onclick="startCombo()">New Combo</button>
-    </div>
+    <p style="color:var(--muted);font-size:0.82rem;margin:0.5rem 0;">Sequence: <strong id="comboSequence">A → S → D → Space</strong></p>
+    <div class="game-controls"><button class="btn" onclick="startCombo()">New Combo</button></div>
   </div>
 
-  <!-- SNAKE -->
   <div class="game-area">
     <h3>🐍 Snake</h3>
     <div class="score">Score: <span id="snakeScore">0</span></div>
     <canvas id="snakeCanvas" width="400" height="400"></canvas>
-    <div class="game-controls">
-      <button class="btn" onclick="startSnake()">Start / Restart</button>
-    </div>
+    <div class="game-controls"><button class="btn" onclick="startSnake()">Start / Restart</button></div>
   </div>
 
-  <!-- MEMORY -->
   <div class="game-area">
     <h3>🧠 Memory Match</h3>
     <div class="score">Moves: <span id="memoryMoves">0</span></div>
     <div class="memory-board" id="memoryBoard"></div>
-    <div class="game-controls">
-      <button class="btn" onclick="initMemory()">New Game</button>
-    </div>
+    <div class="game-controls"><button class="btn" onclick="initMemory()">New Game</button></div>
   </div>
 </section>
 
-<!-- ==================== COD MOBILE ==================== -->
+<!-- COD MOBILE -->
 <section id="cod">
   <h2>📱 Call of Duty Mobile</h2>
   <p class="subtitle">The real game only runs on the official app. Download it here:</p>
@@ -321,12 +430,11 @@
   </div>
 </section>
 
-<!-- ==================== MOVIES ==================== -->
+<!-- MOVIES -->
 <section id="movies">
   <h2>🎬 Movies</h2>
   <p class="subtitle">Full public-domain movies you can watch right here + modern films (trailers + legal links).</p>
 
-  <!-- FULL PUBLIC DOMAIN MOVIES -->
   <h3 style="margin: 2rem 0 1rem; color: var(--accent);">▶️ Full Movies (Public Domain – Watch Now)</h3>
 
   <div class="full-movie-card">
@@ -361,7 +469,6 @@
     </div>
   </div>
 
-  <!-- MODERN MOVIES -->
   <h3 style="margin: 2.5rem 0 1rem; color: var(--accent);">🎥 Modern Movies (Trailers + Legal Watch Links)</h3>
   <div class="grid">
     <div class="card">
@@ -418,67 +525,13 @@
         <a href="https://www.justwatch.com/us/movie/dune-part-two" target="_blank" class="btn btn-secondary">Where to Watch</a>
       </div>
     </div>
-    <div class="card">
-      <img src="https://picsum.photos/seed/oppenheimer/400/250" alt="Oppenheimer" />
-      <div class="card-body">
-        <h3>Oppenheimer (2023)</h3>
-        <p>The man behind the bomb.</p>
-        <a href="https://www.youtube.com/watch?v=uYPbbksJxIg" target="_blank" class="btn">Trailer</a>
-        <a href="https://www.justwatch.com/us/movie/oppenheimer" target="_blank" class="btn btn-secondary">Where to Watch</a>
-      </div>
-    </div>
-    <div class="card">
-      <img src="https://picsum.photos/seed/johnwick/400/250" alt="John Wick" />
-      <div class="card-body">
-        <h3>John Wick (2014)</h3>
-        <p>Don’t kill the dog.</p>
-        <a href="https://www.youtube.com/watch?v=C0BMx-qxsP4" target="_blank" class="btn">Trailer</a>
-        <a href="https://www.justwatch.com/us/movie/john-wick" target="_blank" class="btn btn-secondary">Where to Watch</a>
-      </div>
-    </div>
-    <div class="card">
-      <img src="https://picsum.photos/seed/spiderman/400/250" alt="Spider-Man No Way Home" />
-      <div class="card-body">
-        <h3>Spider-Man: No Way Home (2021)</h3>
-        <p>Multiverse chaos.</p>
-        <a href="https://www.youtube.com/watch?v=JfVOs4VSpmA" target="_blank" class="btn">Trailer</a>
-        <a href="https://www.justwatch.com/us/movie/spider-man-no-way-home" target="_blank" class="btn btn-secondary">Where to Watch</a>
-      </div>
-    </div>
-    <div class="card">
-      <img src="https://picsum.photos/seed/topgun/400/250" alt="Top Gun Maverick" />
-      <div class="card-body">
-        <h3>Top Gun: Maverick (2022)</h3>
-        <p>Need for speed returns.</p>
-        <a href="https://www.youtube.com/watch?v=giXco2jaZ_4" target="_blank" class="btn">Trailer</a>
-        <a href="https://www.justwatch.com/us/movie/top-gun-maverick" target="_blank" class="btn btn-secondary">Where to Watch</a>
-      </div>
-    </div>
-    <div class="card">
-      <img src="https://picsum.photos/seed/parasite/400/250" alt="Parasite" />
-      <div class="card-body">
-        <h3>Parasite (2019)</h3>
-        <p>Class warfare masterpiece.</p>
-        <a href="https://www.youtube.com/watch?v=5xH0HfJHsaY" target="_blank" class="btn">Trailer</a>
-        <a href="https://www.justwatch.com/us/movie/parasite" target="_blank" class="btn btn-secondary">Where to Watch</a>
-      </div>
-    </div>
-    <div class="card">
-      <img src="https://picsum.photos/seed/everything/400/250" alt="Everything Everywhere" />
-      <div class="card-body">
-        <h3>Everything Everywhere All at Once (2022)</h3>
-        <p>Multiverse chaos & bagels.</p>
-        <a href="https://www.youtube.com/watch?v=wxN1U7RgAa8" target="_blank" class="btn">Trailer</a>
-        <a href="https://www.justwatch.com/us/movie/everything-everywhere-all-at-once" target="_blank" class="btn btn-secondary">Where to Watch</a>
-      </div>
-    </div>
   </div>
 </section>
 
-<!-- ==================== MUSIC ==================== -->
+<!-- MUSIC -->
 <section id="music">
   <h2>🎵 Music</h2>
-  <p class="subtitle">17 fully playable tracks. Click any song to start.</p>
+  <p class="subtitle">17 fully playable free tracks. Click any song to start.</p>
 
   <div class="player">
     <div class="player-info">
@@ -499,11 +552,94 @@
 </section>
 
 <footer>
-  PlayZone • All games playable • Full public-domain movies • Free music • COD Mobile links to official stores only
+  PlayZone • Press <strong>`</strong> for panic cloak • Settings ⚙️ in the top right
 </footer>
 
 <script>
-  // ========== COD-STYLE SHOOTER ==========
+  // ========== SETTINGS ==========
+  function openSettings() {
+    document.getElementById('settingsOverlay').classList.add('open');
+  }
+  function closeSettings() {
+    document.getElementById('settingsOverlay').classList.remove('open');
+  }
+  document.getElementById('settingsOverlay').addEventListener('click', e => {
+    if (e.target.id === 'settingsOverlay') closeSettings();
+  });
+
+  function setBackground(el) {
+    const bg = el.dataset.bg;
+    document.body.style.background = bg;
+    document.querySelectorAll('.bg-option').forEach(o => o.classList.remove('active'));
+    el.classList.add('active');
+    localStorage.setItem('pz-bg', bg);
+  }
+
+  function setCloak(el) {
+    const title = el.dataset.title;
+    const icon = el.dataset.icon;
+    document.title = title;
+    const favicon = document.getElementById('favicon');
+    if (icon.startsWith('http')) {
+      favicon.href = icon;
+    } else {
+      favicon.href = `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>${icon}</text></svg>`;
+    }
+    document.querySelectorAll('.cloak-option').forEach(o => o.classList.remove('active'));
+    el.classList.add('active');
+    localStorage.setItem('pz-title', title);
+    localStorage.setItem('pz-icon', icon);
+  }
+
+  function panicExit() {
+    // Try to close the tab, otherwise redirect
+    window.open('https://www.google.com', '_self');
+    // Alternative: window.location.replace('https://www.google.com');
+  }
+
+  function resetSettings() {
+    localStorage.removeItem('pz-bg');
+    localStorage.removeItem('pz-title');
+    localStorage.removeItem('pz-icon');
+    location.reload();
+  }
+
+  // Load saved settings
+  window.addEventListener('DOMContentLoaded', () => {
+    const savedBg = localStorage.getItem('pz-bg');
+    if (savedBg) {
+      document.body.style.background = savedBg;
+      document.querySelectorAll('.bg-option').forEach(o => {
+        o.classList.toggle('active', o.dataset.bg === savedBg);
+      });
+    }
+    const savedTitle = localStorage.getItem('pz-title');
+    const savedIcon = localStorage.getItem('pz-icon');
+    if (savedTitle) {
+      document.title = savedTitle;
+      const favicon = document.getElementById('favicon');
+      if (savedIcon && savedIcon.startsWith('http')) {
+        favicon.href = savedIcon;
+      }
+      document.querySelectorAll('.cloak-option').forEach(o => {
+        o.classList.toggle('active', o.dataset.title === savedTitle);
+      });
+    }
+  });
+
+  // Panic key: `
+  document.addEventListener('keydown', e => {
+    if (e.key === '`') {
+      e.preventDefault();
+      // Quickly cloak to Google then exit
+      document.title = 'Google';
+      document.getElementById('favicon').href = 'https://www.google.com/favicon.ico';
+      setTimeout(panicExit, 150);
+    }
+  });
+
+  // ========== GAMES (same as before) ==========
+  // COD-STYLE SHOOTER
   const codCanvas = document.getElementById('codCanvas');
   const codCtx = codCanvas.getContext('2d');
   let codRunning = false, codKills = 0, codHp = 100;
@@ -520,14 +656,12 @@
     codRunning = false;
     drawCod();
   }
-
   function startCod() {
     resetCod();
     codRunning = true;
     for (let i = 0; i < 5; i++) spawnEnemy();
     codLoop = requestAnimationFrame(updateCod);
   }
-
   function spawnEnemy() {
     enemies.push({
       x: Math.random() * (codCanvas.width - 30),
@@ -536,52 +670,36 @@
       speed: 1.2 + Math.random() * 1.5
     });
   }
-
   function drawCod() {
     codCtx.fillStyle = '#0a0a12';
     codCtx.fillRect(0, 0, codCanvas.width, codCanvas.height);
-    // player
     codCtx.fillStyle = '#7c5cff';
     codCtx.fillRect(playerCod.x, playerCod.y, playerCod.w, playerCod.h);
-    // bullets
     codCtx.fillStyle = '#fbbf24';
     bullets.forEach(b => codCtx.fillRect(b.x, b.y, 4, 10));
-    // enemies
     codCtx.fillStyle = '#ef4444';
     enemies.forEach(e => codCtx.fillRect(e.x, e.y, e.w, e.h));
   }
-
   function updateCod() {
     if (!codRunning) return;
-    // move player
     if ((codKeys['a'] || codKeys['ArrowLeft']) && playerCod.x > 0) playerCod.x -= 5;
     if ((codKeys['d'] || codKeys['ArrowRight']) && playerCod.x < codCanvas.width - playerCod.w) playerCod.x += 5;
     if ((codKeys['w'] || codKeys['ArrowUp']) && playerCod.y > 0) playerCod.y -= 5;
     if ((codKeys['s'] || codKeys['ArrowDown']) && playerCod.y < codCanvas.height - playerCod.h) playerCod.y += 5;
-
-    // bullets
     bullets.forEach(b => b.y -= 8);
     bullets = bullets.filter(b => b.y > -10);
-
-    // enemies
     enemies.forEach(e => {
       e.y += e.speed;
-      // hit player
       if (e.x < playerCod.x + playerCod.w && e.x + e.w > playerCod.x &&
           e.y < playerCod.y + playerCod.h && e.y + e.h > playerCod.y) {
         codHp -= 15;
         document.getElementById('codHp').textContent = Math.max(0, codHp);
         e.y = -50;
-        if (codHp <= 0) {
-          codRunning = false;
-          alert('Mission Failed! Kills: ' + codKills);
-        }
+        if (codHp <= 0) { codRunning = false; alert('Mission Failed! Kills: ' + codKills); }
       }
     });
     enemies = enemies.filter(e => e.y < codCanvas.height + 40);
     while (enemies.length < 6) spawnEnemy();
-
-    // collisions
     bullets.forEach((b, bi) => {
       enemies.forEach((e, ei) => {
         if (b.x < e.x + e.w && b.x + 4 > e.x && b.y < e.y + e.h && b.y + 10 > e.y) {
@@ -592,16 +710,10 @@
         }
       });
     });
-
     drawCod();
     codLoop = requestAnimationFrame(updateCod);
   }
-
-  function shootCod() {
-    if (!codRunning) return;
-    bullets.push({ x: playerCod.x + playerCod.w / 2 - 2, y: playerCod.y });
-  }
-
+  function shootCod() { if (!codRunning) return; bullets.push({ x: playerCod.x + playerCod.w / 2 - 2, y: playerCod.y }); }
   document.addEventListener('keydown', e => {
     codKeys[e.key] = true;
     if (e.key === ' ' || e.key === 'Spacebar') { e.preventDefault(); shootCod(); }
@@ -609,7 +721,7 @@
   document.addEventListener('keyup', e => { codKeys[e.key] = false; });
   codCanvas.addEventListener('click', shootCod);
 
-  // ========== ARENA FIGHTER (same as before) ==========
+  // ARENA FIGHTER
   const fCanvas = document.getElementById('fighterCanvas');
   const fCtx = fCanvas.getContext('2d');
   let fighterRunning = false;
@@ -617,10 +729,8 @@
   let enemy = { x: 380, y: 160, w: 40, h: 70, hp: 100, facing: -1, attack: 0, attackCooldown: 0 };
   let keys = {};
   let fighterLoop;
-
   function resetFighter() {
-    player.hp = 100; enemy.hp = 100;
-    player.x = 80; enemy.x = 380;
+    player.hp = 100; enemy.hp = 100; player.x = 80; enemy.x = 380;
     player.attack = 0; enemy.attack = 0; player.block = false;
     updateHpBars(); drawFighter();
     if (fighterLoop) cancelAnimationFrame(fighterLoop);
@@ -671,7 +781,7 @@
   document.addEventListener('keydown', e => { keys[e.key] = true; });
   document.addEventListener('keyup', e => { keys[e.key] = false; });
 
-  // ========== BUTTON MASH ==========
+  // BUTTON MASH
   let mashHp = 100, mashTimer = null, mashTimeLeft = 15, mashActive = false;
   function startMash() {
     if (mashActive) return;
@@ -690,7 +800,7 @@
     if (mashHp <= 0) { clearInterval(mashTimer); mashActive = false; alert('KO! You win!'); }
   }
 
-  // ========== COMBO ==========
+  // COMBO
   const comboKeys = ['a', 's', 'd', ' '];
   let comboSequence = [], comboIndex = 0, comboCount = 0, comboBest = 0, comboActive = false;
   function startCombo() {
@@ -718,7 +828,7 @@
     }
   });
 
-  // ========== SNAKE ==========
+  // SNAKE
   const canvas = document.getElementById('snakeCanvas');
   const ctx = canvas.getContext('2d');
   const grid = 20;
@@ -750,7 +860,7 @@
     if (e.key === 'ArrowRight' && dx !== -1) { dx=1; dy=0; }
   });
 
-  // ========== MEMORY ==========
+  // MEMORY
   const emojis = ['🚀','🎮','🎬','🎵','🌟','🔥','💎','🦄'];
   let cards=[], flipped=[], matched=0, moves=0, lock=false;
   function initMemory() {
@@ -780,7 +890,7 @@
     }
   }
 
-  // ========== MUSIC ==========
+  // MUSIC
   const tracks = [
     { title: "Horizon Pulse", artist: "SoundHelix", src: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" },
     { title: "Night Runner", artist: "SoundHelix", src: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3" },
