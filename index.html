@@ -3,604 +3,568 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>PlayZone – Tanks & Night Shift</title>
+  <title>PlayZone</title>
+  <link id="favicon" rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎮</text></svg>">
   <style>
     :root {
-      --bg: #0b0b10; --card: #15151f; --accent: #7c5cff; --accent2: #ff4d6d;
-      --text: #f0f0f5; --muted: #9999aa;
+      --bg:#0f0f13; --card:#1a1a24; --accent:#7c5cff; --accent2:#ff4d6d;
+      --text:#f0f0f5; --muted:#a0a0b0; --radius:14px;
     }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: system-ui, sans-serif;
-      background: var(--bg); color: var(--text);
-      line-height: 1.5; padding: 1.5rem; min-height: 100vh;
-    }
-    h1 { text-align: center; margin-bottom: 0.3rem; font-size: 1.8rem; }
-    .sub { text-align: center; color: var(--muted); margin-bottom: 2rem; font-size: 0.95rem; }
-    .game {
-      background: var(--card);
-      border: 1px solid #2a2a38;
-      border-radius: 16px;
-      padding: 1.4rem;
-      margin: 0 auto 2.2rem;
-      max-width: 760px;
-      text-align: center;
-    }
-    .game h2 { margin-bottom: 0.35rem; }
-    .info { color: var(--muted); font-size: 0.84rem; margin-bottom: 0.9rem; }
-    canvas {
-      background: #0a0a12;
-      border-radius: 10px;
-      display: block;
-      margin: 0 auto 0.9rem;
-      max-width: 100%;
-      box-shadow: 0 0 0 1px #222;
-    }
-    .btn {
-      padding: 0.55rem 1.3rem;
-      background: var(--accent);
-      color: white; border: none;
-      border-radius: 50px; font-weight: 600;
-      cursor: pointer; margin: 0.25rem; font-size: 0.9rem;
-    }
-    .btn-secondary {
-      background: transparent;
-      border: 2px solid var(--accent);
-    }
-    .class-row {
-      display: flex; gap: 0.4rem; justify-content: center;
-      flex-wrap: wrap; margin-bottom: 0.55rem;
-    }
-    .class-btn {
-      padding: 0.35rem 0.75rem; border-radius: 20px;
-      border: 2px solid #2a2a38; background: #12121a;
-      color: var(--text); cursor: pointer; font-size: 0.8rem;
-    }
-    .class-btn.active { border-color: var(--accent); background: #1e1a35; }
-    .score { color: var(--accent); margin-bottom: 0.6rem; font-size: 1rem; }
-    .night-ui {
-      display: flex; justify-content: space-around;
-      margin-bottom: 0.7rem; font-size: 0.92rem;
-      background: #0e0e16; padding: 0.6rem; border-radius: 10px;
-    }
-    .night-btn {
-      padding: 0.5rem 1rem; margin: 0.3rem;
-      border-radius: 8px; border: 1px solid #2a2a38;
-      background: #12121a; color: var(--text); cursor: pointer;
-      font-size: 0.88rem;
-    }
-    .night-btn.active { border-color: #4ade80; color: #4ade80; }
-    .controls-hint { font-size: 0.8rem; color: var(--muted); margin-top: 0.4rem; }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.5;min-height:100vh;transition:background .3s}
+    nav{position:sticky;top:0;z-index:100;background:rgba(15,15,19,.95);border-bottom:1px solid #2a2a35;padding:.8rem 1.3rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem}
+    .logo{font-size:1.3rem;font-weight:800;background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+    .nav-links{display:flex;gap:.9rem;flex-wrap:wrap;align-items:center}
+    .nav-links a,.nav-btn{color:var(--muted);text-decoration:none;font-size:.9rem;background:none;border:none;cursor:pointer}
+    .nav-links a:hover,.nav-btn:hover{color:var(--text)}
+    .hero{text-align:center;padding:2.2rem 1.3rem 1.6rem}
+    .hero h1{font-size:clamp(1.6rem,4.5vw,2.4rem);margin-bottom:.35rem}
+    .hero p{color:var(--muted);max-width:520px;margin:0 auto 1.1rem}
+    .btn{display:inline-block;padding:.55rem 1.2rem;background:var(--accent);color:#fff;border:none;border-radius:50px;font-weight:600;cursor:pointer;font-size:.88rem;text-decoration:none}
+    .btn:disabled{opacity:.5;cursor:not-allowed}
+    .btn-secondary{background:transparent;border:2px solid var(--accent)}
+    .overlay{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:1000;display:none;align-items:center;justify-content:center;padding:1rem}
+    .overlay.open{display:flex}
+    .panel{background:var(--card);border:1px solid #2a2a35;border-radius:16px;width:100%;max-width:390px;max-height:90vh;overflow-y:auto;padding:1.4rem}
+    .panel h2{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.1rem;font-size:1.15rem}
+    .close-btn{background:none;border:none;color:var(--muted);font-size:1.4rem;cursor:pointer}
+    .group{margin-bottom:1.2rem}
+    .group label{display:block;font-weight:600;margin-bottom:.3rem;font-size:.9rem}
+    .group p{color:var(--muted);font-size:.78rem;margin-bottom:.45rem}
+    .bg-options,.cloak-options{display:grid;grid-template-columns:repeat(3,1fr);gap:.4rem}
+    .bg-option,.cloak-option{padding:.5rem;border-radius:8px;border:2px solid #2a2a35;background:#12121a;cursor:pointer;text-align:center;font-size:.72rem}
+    .bg-option.active,.cloak-option.active{border-color:var(--accent)}
+    .bg-preview{height:20px;border-radius:4px;margin-bottom:.2rem}
+    input[type=text]{width:100%;padding:.6rem .8rem;border-radius:8px;border:1px solid #2a2a35;background:#12121a;color:var(--text);margin-bottom:.35rem}
+    .full-btn{width:100%;padding:.65rem;border:none;border-radius:10px;font-weight:600;cursor:pointer;margin-top:.2rem}
+    .primary{background:var(--accent);color:#fff}
+    .danger{background:var(--accent2);color:#fff}
+    .ghost{background:transparent;border:1px solid #3a3a4a;color:var(--muted)}
+    section{max-width:960px;margin:0 auto;padding:1.6rem 1.2rem}
+    section h2{font-size:1.45rem;margin-bottom:.25rem}
+    .subtitle{color:var(--muted);margin-bottom:1rem;font-size:.88rem}
+    .ai-panel{max-width:660px;margin:0 auto 1.8rem;background:var(--card);border:1px solid #2a2a35;border-radius:14px;overflow:hidden;display:flex;flex-direction:column;height:420px}
+    .ai-header{padding:.8rem 1rem;border-bottom:1px solid #2a2a35;display:flex;justify-content:space-between;align-items:center;font-weight:700}
+    .ai-status{font-size:.76rem;color:var(--muted)}
+    .progress-bar{height:4px;background:#2a2a35;display:none}
+    .progress-bar.show{display:block}
+    .progress-fill{height:100%;background:var(--accent);width:0%;transition:width .25s}
+    .ai-messages{flex:1;overflow-y:auto;padding:.85rem;display:flex;flex-direction:column;gap:.6rem}
+    .bubble{max-width:85%;padding:.6rem .85rem;border-radius:12px;font-size:.87rem;line-height:1.4}
+    .bubble.bot{background:#252532;align-self:flex-start}
+    .bubble.user{background:var(--accent);align-self:flex-end}
+    .ai-input-row{padding:.7rem;border-top:1px solid #2a2a35;display:flex;gap:.45rem}
+    .ai-input-row input{flex:1;padding:.6rem .85rem;border-radius:20px;border:1px solid #2a2a35;background:#12121a;color:var(--text)}
+    .ai-input-row button{padding:.6rem 1rem;border-radius:20px;background:var(--accent);color:#fff;border:none;font-weight:600;cursor:pointer}
+    .lb-card{background:var(--card);border:1px solid #2a2a35;border-radius:var(--radius);padding:1rem;margin-bottom:1rem}
+    .lb-card h3{color:var(--accent);margin-bottom:.5rem;font-size:1rem}
+    .lb-table{width:100%;border-collapse:collapse;font-size:.86rem}
+    .lb-table th,.lb-table td{padding:.4rem .25rem;text-align:left;border-bottom:1px solid #2a2a35}
+    .lb-table th{color:var(--muted)}
+    .lb-empty{color:var(--muted);font-size:.84rem}
+    .game-area{background:var(--card);border:1px solid #2a2a35;border-radius:var(--radius);padding:1.1rem;text-align:center;margin-bottom:1.3rem}
+    .score{color:var(--accent);margin-bottom:.4rem}
+    canvas{background:#111;border-radius:8px;display:block;margin:0 auto .6rem;max-width:100%}
+    .game-controls{display:flex;gap:.4rem;justify-content:center;flex-wrap:wrap}
+    .class-row{display:flex;gap:.35rem;justify-content:center;flex-wrap:wrap;margin-bottom:.5rem}
+    .class-btn{padding:.3rem .65rem;border-radius:18px;border:2px solid #2a2a35;background:#12121a;color:var(--text);cursor:pointer;font-size:.78rem}
+    .class-btn.active{border-color:var(--accent);background:#1e1a3a}
+    .night-ui{display:flex;justify-content:space-around;margin-bottom:.5rem;font-size:.88rem;flex-wrap:wrap;gap:.3rem}
+    .night-btn{padding:.4rem .8rem;margin:.2rem;border-radius:8px;border:1px solid #2a2a35;background:#12121a;color:var(--text);cursor:pointer;font-size:.82rem}
+    .night-btn.active{border-color:var(--accent);background:#1e1a3a}
+    .cam-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.4rem;margin:.5rem 0;max-width:420px;margin-left:auto;margin-right:auto}
+    .cam-btn{padding:.35rem;border-radius:6px;border:1px solid #2a2a35;background:#12121a;color:var(--muted);cursor:pointer;font-size:.75rem}
+    .cam-btn.active{border-color:#67e8f9;color:#67e8f9}
+    .combo-display{font-size:1.35rem;font-weight:800;color:var(--accent2);min-height:1.8rem}
+    .movie-player{background:#000;border-radius:10px;overflow:hidden;margin-bottom:.65rem;aspect-ratio:16/9}
+    .movie-player iframe{width:100%;height:100%;border:none}
+    .full-movie-card{margin-bottom:1.5rem}
+    .player{background:var(--card);border:1px solid #2a2a35;border-radius:var(--radius);padding:1rem;max-width:440px;margin:0 auto 1.1rem}
+    .player-info{text-align:center;margin-bottom:.4rem}
+    .progress{height:5px;background:#2a2a35;border-radius:3px;margin:.5rem 0;cursor:pointer}
+    .progress-fill-music{height:100%;background:var(--accent);width:0%;border-radius:3px}
+    .player-controls{display:flex;justify-content:center;gap:1rem}
+    .player-controls button{background:none;border:none;color:var(--text);font-size:1.25rem;cursor:pointer}
+    .playlist{list-style:none;max-width:440px;margin:0 auto}
+    .playlist li{padding:.55rem .8rem;border-radius:8px;display:flex;justify-content:space-between;cursor:pointer;font-size:.88rem}
+    .playlist li:hover,.playlist li.active{background:#252532}
+    .playlist li.active{color:var(--accent)}
+    footer{text-align:center;padding:1.5rem;color:var(--muted);font-size:.8rem;border-top:1px solid #2a2a35;margin-top:1.2rem}
   </style>
 </head>
 <body>
 
-<h1>PlayZone</h1>
-<p class="sub">Bigger Tank Trouble + Improved Night Shift (original horror)</p>
-
-<!-- ========== TANK TROUBLE ========== -->
-<div class="game">
-  <h2>坦克 2-Player Tank Trouble</h2>
-  <p class="info">
-    <strong>Player 1:</strong> WASD + Space &nbsp;&nbsp;|&nbsp;&nbsp;
-    <strong>Player 2:</strong> Arrow Keys + Enter
-  </p>
-
-  <div class="class-row">
-    <button class="class-btn active" data-c="balanced" onclick="setClass(this,'p1')">P1 Balanced</button>
-    <button class="class-btn" data-c="speed" onclick="setClass(this,'p1')">P1 Speed</button>
-    <button class="class-btn" data-c="heavy" onclick="setClass(this,'p1')">P1 Heavy</button>
+<nav>
+  <div class="logo">PlayZone</div>
+  <div class="nav-links">
+    <a href="#ai">AI</a>
+    <a href="#leaderboard">Leaderboard</a>
+    <a href="#games">Games</a>
+    <a href="#movies">Movies</a>
+    <a href="#music">Music</a>
+    <button class="nav-btn" onclick="openSettings()">⚙️ Settings</button>
   </div>
-  <div class="class-row">
-    <button class="class-btn active" data-c="balanced" onclick="setClass(this,'p2')">P2 Balanced</button>
-    <button class="class-btn" data-c="speed" onclick="setClass(this,'p2')">P2 Speed</button>
-    <button class="class-btn" data-c="heavy" onclick="setClass(this,'p2')">P2 Heavy</button>
+</nav>
+
+<div class="overlay" id="settingsOverlay">
+  <div class="panel">
+    <h2>Settings <button class="close-btn" onclick="closeSettings()">×</button></h2>
+    <div class="group">
+      <label>Local Username</label>
+      <p>Saved only on this device.</p>
+      <input type="text" id="usernameInput" placeholder="Enter username" maxlength="16">
+      <button class="full-btn primary" onclick="saveUsername()">Save Username</button>
+    </div>
+    <div class="group">
+      <label>Background</label>
+      <div class="bg-options">
+        <div class="bg-option active" data-bg="#0f0f13" onclick="setBackground(this)"><div class="bg-preview" style="background:#0f0f13"></div>Dark</div>
+        <div class="bg-option" data-bg="#111827" onclick="setBackground(this)"><div class="bg-preview" style="background:#111827"></div>Midnight</div>
+        <div class="bg-option" data-bg="linear-gradient(135deg,#0f0f13,#1e1a3a)" onclick="setBackground(this)"><div class="bg-preview" style="background:linear-gradient(135deg,#0f0f13,#1e1a3a)"></div>Purple</div>
+        <div class="bg-option" data-bg="#000" onclick="setBackground(this)"><div class="bg-preview" style="background:#000"></div>Black</div>
+      </div>
+    </div>
+    <div class="group">
+      <label>Tab Cloaking</label>
+      <div class="cloak-options">
+        <div class="cloak-option active" data-title="PlayZone" data-icon="🎮" onclick="setCloak(this)">PlayZone</div>
+        <div class="cloak-option" data-title="Google" data-icon="https://www.google.com/favicon.ico" onclick="setCloak(this)">Google</div>
+        <div class="cloak-option" data-title="Google Docs" data-icon="https://ssl.gstatic.com/docs/documents/images/kix-favicon7.ico" onclick="setCloak(this)">Docs</div>
+        <div class="cloak-option" data-title="YouTube" data-icon="https://www.youtube.com/s/desktop/favicon.ico" onclick="setCloak(this)">YouTube</div>
+      </div>
+    </div>
+    <div class="group"><button class="full-btn danger" onclick="panicExit()">🚨 Exit Tab / Google</button></div>
+    <button class="full-btn ghost" onclick="resetAll()">Reset Everything</button>
   </div>
-
-  <div class="score">
-    P1 Lives: <span id="p1Lives">3</span> &nbsp;•&nbsp;
-    P2 Lives: <span id="p2Lives">3</span>
-  </div>
-
-  <canvas id="tankCanvas" width="700" height="420"></canvas>
-
-  <button class="btn" onclick="startTanks()">Start Match</button>
-  <button class="btn btn-secondary" onclick="resetTanks()">Reset</button>
-  <p class="controls-hint">Classes change speed, turn rate, bullet speed & reload time</p>
 </div>
 
-<!-- ========== NIGHT SHIFT ========== -->
-<div class="game">
-  <h2>🌙 Night Shift – Facility 7</h2>
-  <p class="info">
-    Survive until 6 AM. Watch the doors. Manage power carefully.<br>
-    <em>(Original game – not Five Nights at Freddy’s)</em>
-  </p>
+<header class="hero">
+  <h1>PlayZone</h1>
+  <p>Improved Tanks (bouncing bullets) • Better Night Shift • Local AI • Games • Movies • Music</p>
+  <button class="btn" id="loadModelBtn" onclick="loadModel()">Load AI Model</button>
+  <button class="btn btn-secondary" style="margin-left:.4rem" onclick="openSettings()">Settings</button>
+</header>
 
-  <div class="night-ui">
-    <span>Night <strong id="nightNum">1</strong></span>
-    <span>Power <strong id="powerLeft">100</strong>%</span>
-    <span><strong id="nightTime">12 AM</strong></span>
+<section id="ai">
+  <div class="ai-panel">
+    <div class="ai-header"><span>🤖 Local LLM</span><span class="ai-status" id="aiStatus">Model not loaded</span></div>
+    <div class="progress-bar" id="progressBar"><div class="progress-fill" id="progressFill"></div></div>
+    <div class="ai-messages" id="aiMessages"><div class="bubble bot">Click “Load AI Model” to download a small language model (first time only).</div></div>
+    <div class="ai-input-row">
+      <input type="text" id="aiInput" placeholder="Type a message..." disabled onkeydown="if(event.key==='Enter')sendMessage()">
+      <button id="sendBtn" onclick="sendMessage()" disabled>Send</button>
+    </div>
+  </div>
+</section>
+
+<section id="leaderboard">
+  <h2>🏆 Local Leaderboard</h2>
+  <p class="subtitle">Scores saved only on this device.</p>
+  <div class="lb-card"><h3>🐍 Snake</h3><div id="lb-snake"><p class="lb-empty">No scores yet</p></div></div>
+  <div class="lb-card"><h3>🔫 COD Shooter</h3><div id="lb-cod"><p class="lb-empty">No scores yet</p></div></div>
+  <div class="lb-card"><h3>🔥 Combo</h3><div id="lb-combo"><p class="lb-empty">No scores yet</p></div></div>
+</section>
+
+<section id="games">
+  <h2>🎮 Games</h2>
+  <p class="subtitle">All games are fully playable.</p>
+
+  <!-- IMPROVED TANK TROUBLE -->
+  <div class="game-area">
+    <h3>坦克 2-Player Tank Trouble (Improved)</h3>
+    <p style="color:var(--muted);font-size:.8rem;margin-bottom:.5rem">
+      P1: WASD + Space &nbsp;|&nbsp; P2: Arrows + Enter &nbsp;|&nbsp; Bullets bounce off walls
+    </p>
+    <div class="class-row">
+      <button class="class-btn active" data-c="balanced" onclick="setClass(this,'p1')">P1 Balanced</button>
+      <button class="class-btn" data-c="speed" onclick="setClass(this,'p1')">P1 Speed</button>
+      <button class="class-btn" data-c="heavy" onclick="setClass(this,'p1')">P1 Heavy</button>
+    </div>
+    <div class="class-row">
+      <button class="class-btn active" data-c="balanced" onclick="setClass(this,'p2')">P2 Balanced</button>
+      <button class="class-btn" data-c="speed" onclick="setClass(this,'p2')">P2 Speed</button>
+      <button class="class-btn" data-c="heavy" onclick="setClass(this,'p2')">P2 Heavy</button>
+    </div>
+    <div class="score">P1 Lives: <span id="p1Lives">3</span> &nbsp;|&nbsp; P2 Lives: <span id="p2Lives">3</span></div>
+    <canvas id="tankCanvas" width="640" height="400"></canvas>
+    <div class="game-controls">
+      <button class="btn" onclick="startTanks()">Start Match</button>
+      <button class="btn btn-secondary" onclick="resetTanks()">Reset</button>
+    </div>
   </div>
 
-  <canvas id="nightCanvas" width="640" height="320"></canvas>
-
-  <div>
-    <button class="night-btn" id="leftDoorBtn" onclick="toggleDoor('left')">Left Door</button>
-    <button class="night-btn" id="camBtn" onclick="toggleCam()">Cameras</button>
-    <button class="night-btn" id="rightDoorBtn" onclick="toggleDoor('right')">Right Door</button>
+  <!-- IMPROVED NIGHT SHIFT (original) -->
+  <div class="game-area">
+    <h3>🌙 Night Shift – Facility 7 (Improved)</h3>
+    <p style="color:var(--muted);font-size:.8rem;margin-bottom:.5rem">
+      Multiple cameras & rooms. Survive until 6 AM. Manage power carefully.
+    </p>
+    <div class="night-ui">
+      <span>Night: <strong id="nightNum">1</strong></span>
+      <span>Power: <strong id="powerLeft">100</strong>%</span>
+      <span>Time: <strong id="nightTime">12 AM</strong></span>
+      <span>View: <strong id="currentCam">Office</strong></span>
+    </div>
+    <canvas id="nightCanvas" width="520" height="280"></canvas>
+    <div class="cam-grid">
+      <button class="cam-btn active" data-cam="office" onclick="switchCam(this)">Office</button>
+      <button class="cam-btn" data-cam="hall" onclick="switchCam(this)">Hall A</button>
+      <button class="cam-btn" data-cam="storage" onclick="switchCam(this)">Storage</button>
+      <button class="cam-btn" data-cam="vent" onclick="switchCam(this)">Vent</button>
+      <button class="cam-btn" data-cam="yard" onclick="switchCam(this)">Yard</button>
+      <button class="cam-btn" data-cam="server" onclick="switchCam(this)">Server</button>
+    </div>
+    <div>
+      <button class="night-btn" id="leftDoorBtn" onclick="toggleDoor('left')">Left Door</button>
+      <button class="night-btn" id="rightDoorBtn" onclick="toggleDoor('right')">Right Door</button>
+    </div>
+    <div class="game-controls" style="margin-top:.5rem">
+      <button class="btn" onclick="startNight()">Start Night</button>
+    </div>
   </div>
 
-  <button class="btn" style="margin-top:0.7rem" onclick="startNight()">Start Night</button>
-  <p class="controls-hint">Threats get more aggressive each night. Don’t waste power.</p>
-</div>
+  <!-- Snake -->
+  <div class="game-area">
+    <h3>🐍 Snake</h3>
+    <div class="score">Score: <span id="snakeScore">0</span></div>
+    <canvas id="snakeCanvas" width="320" height="320"></canvas>
+    <div class="game-controls"><button class="btn" onclick="startSnake()">Start</button></div>
+  </div>
 
-<script>
-// =====================================================
-//  2-PLAYER TANK TROUBLE – bigger & more realistic
-// =====================================================
-const tankCanvas = document.getElementById('tankCanvas');
-const tCtx = tankCanvas.getContext('2d');
+  <!-- COD -->
+  <div class="game-area">
+    <h3>🔫 COD-Style Shooter</h3>
+    <div class="score">Kills: <span id="codKills">0</span> | HP: <span id="codHp">100</span></div>
+    <canvas id="codCanvas" width="440" height="250"></canvas>
+    <div class="game-controls">
+      <button class="btn" onclick="startCod()">Start</button>
+      <button class="btn btn-secondary" onclick="resetCod()">Reset</button>
+    </div>
+  </div>
 
-const classes = {
-  balanced: { speed: 2.6, turn: 0.065, bullet: 5.8, reload: 20, color: null },
-  speed:    { speed: 3.7, turn: 0.095, bullet: 6.8, reload: 14, color: null },
-  heavy:    { speed: 1.8, turn: 0.04,  bullet: 4.6, reload: 34, color: null }
-};
+  <!-- Combo -->
+  <div class="game-area">
+    <h3>🔥 Combo Trainer</h3>
+    <div class="score">Combo: <span id="comboCount">0</span> | Best: <span id="comboBest">0</span></div>
+    <div class="combo-display" id="comboDisplay">Press the keys!</div>
+    <p style="color:var(--muted);font-size:.8rem">Sequence: <strong id="comboSequence">A → S → D → Space</strong></p>
+    <div class="game-controls"><button class="btn" onclick="startCombo()">New Combo</button></div>
+  </div>
+</section>
 
-let p1Class = 'balanced', p2Class = 'balanced';
-let running = false, p1, p2, bullets = [], walls = [], particles = [], animId;
+<section id="movies">
+  <h2>🎬 Movies</h2>
+  <p class="subtitle">Public domain full movies (free & legal).</p>
+  <div class="full-movie-card">
+    <h4>Night of the Living Dead (1968)</h4>
+    <div class="movie-player"><iframe src="https://archive.org/embed/night_of_the_living_dead" allowfullscreen></iframe></div>
+  </div>
+  <div class="full-movie-card">
+    <h4>Charade (1963)</h4>
+    <div class="movie-player"><iframe src="https://archive.org/embed/Charade19631280x696" allowfullscreen></iframe></div>
+  </div>
+  <div class="full-movie-card">
+    <h4>Nosferatu (1922)</h4>
+    <div class="movie-player"><iframe src="https://archive.org/embed/nosferatu" allowfullscreen></iframe></div>
+  </div>
+</section>
 
-function setClass(btn, who) {
-  document.querySelectorAll(`.class-btn[onclick*="${who}"]`).forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  if (who === 'p1') p1Class = btn.dataset.c;
-  else p2Class = btn.dataset.c;
-}
+<section id="music">
+  <h2>🎵 Music</h2>
+  <p class="subtitle">Free tracks.</p>
+  <div class="player">
+    <div class="player-info">
+      <h3 id="trackTitle">Select a track</h3>
+      <p id="trackArtist" style="color:var(--muted);font-size:.84rem">—</p>
+    </div>
+    <div class="progress" onclick="seek(event)"><div class="progress-fill-music" id="progressMusic"></div></div>
+    <div class="player-controls">
+      <button onclick="prevTrack()">⏮</button>
+      <button onclick="togglePlay()" id="playBtn">▶</button>
+      <button onclick="nextTrack()">⏭</button>
+    </div>
+  </div>
+  <ul class="playlist" id="playlist"></ul>
+</section>
 
-function makeTank(x, y, angle, cls, isP1) {
-  const c = classes[cls];
-  return {
-    x, y, angle,
-    speed: c.speed,
-    turn: c.turn,
-    bulletSpeed: c.bullet,
-    reload: 0,
-    maxReload: c.reload,
-    lives: 3,
-    color: isP1 ? '#7c5cff' : '#ff4d6d',
-    isP1,
-    trail: []
-  };
-}
+<footer>Improved Tanks + Night Shift • Local AI • Local Leaderboard • Press ` for panic</footer>
 
-function resetTanks() {
-  running = false;
-  if (animId) cancelAnimationFrame(animId);
-  p1 = makeTank(90, 210, 0, p1Class, true);
-  p2 = makeTank(610, 210, Math.PI, p2Class, false);
-  bullets = [];
-  particles = [];
-  // more interesting map
-  walls = [
-    {x: 280, y: 60,  w: 24, h: 110},
-    {x: 400, y: 250, w: 24, h: 110},
-    {x: 160, y: 160, w: 90, h: 22},
-    {x: 450, y: 100, w: 90, h: 22},
-    {x: 320, y: 190, w: 60, h: 22},
-    {x: 80,  y: 80,  w: 22, h: 70},
-    {x: 600, y: 280, w: 22, h: 70}
-  ];
-  document.getElementById('p1Lives').textContent = 3;
-  document.getElementById('p2Lives').textContent = 3;
-  drawTanks();
-}
+<script type="module">
+  import * as webllm from "https://esm.run/@mlc-ai/web-llm";
 
-function startTanks() {
-  resetTanks();
-  running = true;
+  // ===== USER + LEADERBOARD =====
+  function getUsername(){return localStorage.getItem('pz-user')||'Player'}
+  window.saveUsername=function(){const n=document.getElementById('usernameInput').value.trim().slice(0,16)||'Player';localStorage.setItem('pz-user',n);alert('Username saved: '+n);renderLeaderboards()}
+  function getScores(g){try{return JSON.parse(localStorage.getItem('pz-lb-'+g)||'[]')}catch{return[]}}
+  function saveScore(g,s){let list=getScores(g);list.push({name:getUsername(),score:s,date:new Date().toLocaleDateString()});list.sort((a,b)=>b.score-a.score);list=list.slice(0,8);localStorage.setItem('pz-lb-'+g,JSON.stringify(list));renderLeaderboards()}
+  function renderLeaderboards(){['snake','cod','combo'].forEach(g=>{const el=document.getElementById('lb-'+g);const list=getScores(g);if(!list.length){el.innerHTML='<p class="lb-empty">No scores yet</p>';return}let h='<table class="lb-table"><tr><th>#</th><th>Player</th><th>Score</th></tr>';list.forEach((s,i)=>h+=`<tr><td>${i+1}</td><td>${s.name}</td><td>${s.score}</td></tr>`);el.innerHTML=h+'</table>'})}
 
-  function loop() {
-    if (!running) return;
+  // ===== SETTINGS =====
+  window.openSettings=()=>{document.getElementById('settingsOverlay').classList.add('open');document.getElementById('usernameInput').value=getUsername()==='Player'?'':getUsername()}
+  window.closeSettings=()=>document.getElementById('settingsOverlay').classList.remove('open')
+  window.setBackground=el=>{document.body.style.background=el.dataset.bg;document.querySelectorAll('.bg-option').forEach(o=>o.classList.remove('active'));el.classList.add('active');localStorage.setItem('pz-bg',el.dataset.bg)}
+  window.setCloak=el=>{document.title=el.dataset.title;const f=document.getElementById('favicon');f.href=el.dataset.icon.startsWith('http')?el.dataset.icon:`data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>${el.dataset.icon}</text></svg>`;document.querySelectorAll('.cloak-option').forEach(o=>o.classList.remove('active'));el.classList.add('active')}
+  window.panicExit=()=>window.open('https://www.google.com','_self')
+  window.resetAll=()=>{if(confirm('Clear all local data?')){localStorage.clear();location.reload()}}
+  if(localStorage.getItem('pz-bg'))document.body.style.background=localStorage.getItem('pz-bg')
+  document.addEventListener('keydown',e=>{if(e.key==='`'){document.title='Google';document.getElementById('favicon').href='https://www.google.com/favicon.ico';setTimeout(panicExit,60)}})
 
-    // --- Player 1 ---
-    if (keys['a'] || keys['A']) p1.angle -= p1.turn;
-    if (keys['d'] || keys['D']) p1.angle += p1.turn;
-    if (keys['w'] || keys['W']) {
-      p1.x += Math.cos(p1.angle) * p1.speed;
-      p1.y += Math.sin(p1.angle) * p1.speed;
-    }
-    if (keys['s'] || keys['S']) {
-      p1.x -= Math.cos(p1.angle) * p1.speed;
-      p1.y -= Math.sin(p1.angle) * p1.speed;
-    }
-    if ((keys[' '] || keys['Spacebar']) && p1.reload <= 0) {
-      fire(p1, 'p1');
-      p1.reload = p1.maxReload;
-    }
+  // ===== LOCAL AI =====
+  let engine=null,generating=false
+  const statusEl=document.getElementById('aiStatus'),progressBar=document.getElementById('progressBar'),progressFill=document.getElementById('progressFill')
+  const messagesEl=document.getElementById('aiMessages'),inputEl=document.getElementById('aiInput'),sendBtn=document.getElementById('sendBtn'),loadBtn=document.getElementById('loadModelBtn')
+  function addBubble(t,ty){const d=document.createElement('div');d.className='bubble '+ty;d.textContent=t;messagesEl.appendChild(d);messagesEl.scrollTop=99999}
+  window.loadModel=async()=>{if(engine)return;loadBtn.disabled=true;loadBtn.textContent='Loading...';statusEl.textContent='Downloading...';progressBar.classList.add('show')
+    try{engine=await webllm.CreateMLCEngine("Llama-3.2-1B-Instruct-q4f32_1-MLC",{initProgressCallback:r=>{statusEl.textContent=r.text||'Loading...';if(r.progress)progressFill.style.width=(r.progress*100)+'%'}})
+      statusEl.textContent='Model ready';progressBar.classList.remove('show');inputEl.disabled=false;sendBtn.disabled=false;loadBtn.textContent='Model Loaded';addBubble('Model loaded! Start chatting.','bot')
+    }catch(e){statusEl.textContent='Failed';loadBtn.disabled=false;loadBtn.textContent='Try Again';addBubble('Failed: '+e.message,'bot')}}
+  window.sendMessage=async()=>{if(!engine||generating)return;const text=inputEl.value.trim();if(!text)return;addBubble(text,'user');inputEl.value='';generating=true;sendBtn.disabled=true;statusEl.textContent='Thinking...'
+    try{const r=await engine.chat.completions.create({messages:[{role:'system',content:'You are a helpful assistant on PlayZone. Keep answers short.'},{role:'user',content:text}],temperature:.7,max_tokens:220});addBubble(r.choices[0].message.content,'bot')}catch(e){addBubble('Error: '+e.message,'bot')}
+    generating=false;sendBtn.disabled=false;statusEl.textContent='Model ready'}
 
-    // --- Player 2 ---
-    if (keys['ArrowLeft'])  p2.angle -= p2.turn;
-    if (keys['ArrowRight']) p2.angle += p2.turn;
-    if (keys['ArrowUp']) {
-      p2.x += Math.cos(p2.angle) * p2.speed;
-      p2.y += Math.sin(p2.angle) * p2.speed;
-    }
-    if (keys['ArrowDown']) {
-      p2.x -= Math.cos(p2.angle) * p2.speed;
-      p2.y -= Math.sin(p2.angle) * p2.speed;
-    }
-    if (keys['Enter'] && p2.reload <= 0) {
-      fire(p2, 'p2');
-      p2.reload = p2.maxReload;
-    }
-
-    if (p1.reload > 0) p1.reload--;
-    if (p2.reload > 0) p2.reload--;
-
-    // bounds
-    [p1, p2].forEach(t => {
-      t.x = Math.max(22, Math.min(678, t.x));
-      t.y = Math.max(22, Math.min(398, t.y));
-    });
-
-    // simple wall collision (push out)
-    [p1, p2].forEach(t => {
-      walls.forEach(w => {
-        if (t.x > w.x-14 && t.x < w.x+w.w+14 && t.y > w.y-14 && t.y < w.y+w.h+14) {
-          // push back a bit
-          const cx = w.x + w.w/2, cy = w.y + w.h/2;
-          const dx = t.x - cx, dy = t.y - cy;
-          const len = Math.hypot(dx, dy) || 1;
-          t.x += (dx/len) * 3;
-          t.y += (dy/len) * 3;
+  // ===== IMPROVED TANK TROUBLE (slower + bouncing bullets) =====
+  const tankCanvas=document.getElementById('tankCanvas'),tCtx=tankCanvas.getContext('2d')
+  const W=640,H=400
+  const classes={
+    balanced:{speed:1.15,turn:0.045,bullet:3.2,reload:28,size:16},
+    speed:{speed:1.55,turn:0.06,bullet:3.6,reload:20,size:14},
+    heavy:{speed:0.85,turn:0.03,bullet:2.8,reload:40,size:19}
+  }
+  let p1Class='balanced',p2Class='balanced',tankRunning=false,p1,p2,bullets=[],walls=[],tankAnim
+  window.setClass=(btn,who)=>{document.querySelectorAll(`.class-btn[onclick*="${who}"]`).forEach(b=>b.classList.remove('active'));btn.classList.add('active');if(who==='p1')p1Class=btn.dataset.c;else p2Class=btn.dataset.c}
+  function makeTank(x,y,angle,cls,isP1){const c=classes[cls];return{x,y,angle,speed:c.speed,turn:c.turn,bullet:c.bullet,reload:0,maxReload:c.reload,size:c.size,lives:3,color:isP1?'#7c5cff':'#ff4d6d',isP1}}
+  window.resetTanks=()=>{tankRunning=false;if(tankAnim)cancelAnimationFrame(tankAnim)
+    p1=makeTank(80,200,0,p1Class,true);p2=makeTank(560,200,Math.PI,p2Class,false);bullets=[]
+    walls=[
+      {x:200,y:60,w:24,h:120},{x:420,y:220,w:24,h:120},
+      {x:140,y:180,w:100,h:22},{x:400,y:100,w:100,h:22},
+      {x:300,y:160,w:40,h:40},{x:250,y:300,w:140,h:20}
+    ]
+    document.getElementById('p1Lives').textContent=3;document.getElementById('p2Lives').textContent=3;drawTanks()}
+  window.startTanks=()=>{resetTanks();tankRunning=true
+    function loop(){if(!tankRunning)return
+      // P1
+      if(keys['a'])p1.angle-=p1.turn;if(keys['d'])p1.angle+=p1.turn
+      if(keys['w']){p1.x+=Math.cos(p1.angle)*p1.speed;p1.y+=Math.sin(p1.angle)*p1.speed}
+      if(keys['s']){p1.x-=Math.cos(p1.angle)*p1.speed;p1.y-=Math.sin(p1.angle)*p1.speed}
+      if(keys[' ']&&p1.reload<=0){bullets.push({x:p1.x+Math.cos(p1.angle)*(p1.size+6),y:p1.y+Math.sin(p1.angle)*(p1.size+6),dx:Math.cos(p1.angle)*p1.bullet,dy:Math.sin(p1.angle)*p1.bullet,owner:'p1',bounces:0});p1.reload=p1.maxReload}
+      // P2
+      if(keys['ArrowLeft'])p2.angle-=p2.turn;if(keys['ArrowRight'])p2.angle+=p2.turn
+      if(keys['ArrowUp']){p2.x+=Math.cos(p2.angle)*p2.speed;p2.y+=Math.sin(p2.angle)*p2.speed}
+      if(keys['ArrowDown']){p2.x-=Math.cos(p2.angle)*p2.speed;p2.y-=Math.sin(p2.angle)*p2.speed}
+      if(keys['Enter']&&p2.reload<=0){bullets.push({x:p2.x+Math.cos(p2.angle)*(p2.size+6),y:p2.y+Math.sin(p2.angle)*(p2.size+6),dx:Math.cos(p2.angle)*p2.bullet,dy:Math.sin(p2.angle)*p2.bullet,owner:'p2',bounces:0});p2.reload=p2.maxReload}
+      if(p1.reload>0)p1.reload--;if(p2.reload>0)p2.reload--
+      // bounds + simple wall collision for tanks
+      ;[p1,p2].forEach(t=>{
+        t.x=Math.max(t.size,Math.min(W-t.size,t.x));t.y=Math.max(t.size,Math.min(H-t.size,t.y))
+        walls.forEach(w=>{
+          if(t.x>w.x-t.size&&t.x<w.x+w.w+t.size&&t.y>w.y-t.size&&t.y<w.y+w.h+t.size){
+            // push out roughly
+            const cx=w.x+w.w/2,cy=w.y+w.h/2
+            const dx=t.x-cx,dy=t.y-cy
+            if(Math.abs(dx)>Math.abs(dy))t.x+=dx>0?3:-3;else t.y+=dy>0?3:-3
+          }
+        })
+      })
+      // bullets move + bounce
+      bullets.forEach(b=>{
+        b.x+=b.dx;b.y+=b.dy
+        // bounce on outer walls
+        if(b.x<6||b.x>W-6){b.dx*=-1;b.bounces++}
+        if(b.y<6||b.y>H-6){b.dy*=-1;b.bounces++}
+        // bounce on inner walls
+        walls.forEach(w=>{
+          if(b.x>w.x&&b.x<w.x+w.w&&b.y>w.y&&b.y<w.y+w.h){
+            // simple bounce
+            const prevX=b.x-b.dx,prevY=b.y-b.dy
+            if(prevX<=w.x||prevX>=w.x+w.w)b.dx*=-1
+            else b.dy*=-1
+            b.bounces++
+          }
+        })
+      })
+      bullets=bullets.filter(b=>b.bounces<8)
+      // hits
+      bullets.forEach((b,i)=>{
+        const t=b.owner==='p1'?p2:p1
+        if(Math.hypot(b.x-t.x,b.y-t.y)<t.size+2){
+          bullets.splice(i,1);t.lives--;document.getElementById(t.isP1?'p1Lives':'p2Lives').textContent=t.lives
+          if(t.lives<=0){tankRunning=false;setTimeout(()=>alert((t.isP1?'Player 2':'Player 1')+' wins!'),50)}
         }
-      });
-    });
-
+      })
+      drawTanks();tankAnim=requestAnimationFrame(loop)
+    }
+    loop()
+  }
+  function drawTanks(){
+    tCtx.fillStyle='#0d0d14';tCtx.fillRect(0,0,W,H)
+    // grid feel
+    tCtx.strokeStyle='#1a1a28';tCtx.lineWidth=1
+    for(let x=0;x<W;x+=40){tCtx.beginPath();tCtx.moveTo(x,0);tCtx.lineTo(x,H);tCtx.stroke()}
+    for(let y=0;y<H;y+=40){tCtx.beginPath();tCtx.moveTo(0,y);tCtx.lineTo(W,y);tCtx.stroke()}
+    // walls
+    tCtx.fillStyle='#2a2a3a';walls.forEach(w=>{tCtx.fillRect(w.x,w.y,w.w,w.h);tCtx.strokeStyle='#444';tCtx.strokeRect(w.x,w.y,w.w,w.h)})
+    // tanks
+    ;[p1,p2].forEach(t=>{
+      tCtx.save();tCtx.translate(t.x,t.y);tCtx.rotate(t.angle)
+      // body
+      tCtx.fillStyle=t.color;tCtx.fillRect(-t.size,-t.size*0.7,t.size*2,t.size*1.4)
+      // tracks
+      tCtx.fillStyle='#222';tCtx.fillRect(-t.size,-t.size*0.85,t.size*2,4);tCtx.fillRect(-t.size,t.size*0.6,t.size*2,4)
+      // barrel
+      tCtx.fillStyle='#ccc';tCtx.fillRect(t.size*0.3,-3,t.size*1.1,6)
+      tCtx.restore()
+    })
     // bullets
-    bullets.forEach(b => {
-      b.x += b.dx;
-      b.y += b.dy;
-      b.life--;
-    });
-    bullets = bullets.filter(b => b.life > 0 && b.x > 0 && b.x < 700 && b.y > 0 && b.y < 420);
+    tCtx.fillStyle='#fbbf24'
+    bullets.forEach(b=>{tCtx.beginPath();tCtx.arc(b.x,b.y,4,0,Math.PI*2);tCtx.fill()})
+  }
+  const keys={};document.addEventListener('keydown',e=>{keys[e.key]=true;if([' ','ArrowUp','ArrowDown','Enter'].includes(e.key))e.preventDefault()})
+  document.addEventListener('keyup',e=>keys[e.key]=false)
+  resetTanks()
 
-    // bullet vs wall
-    bullets.forEach((b, i) => {
-      walls.forEach(w => {
-        if (b.x > w.x && b.x < w.x+w.w && b.y > w.y && b.y < w.y+w.h) {
-          spawnParticles(b.x, b.y, '#fbbf24');
-          bullets.splice(i, 1);
-        }
-      });
-    });
+  // ===== IMPROVED NIGHT SHIFT (original, multi-camera) =====
+  const nightCanvas=document.getElementById('nightCanvas'),nCtx=nightCanvas.getContext('2d')
+  let nightRunning=false,power=100,night=1,hour=0,leftDoor=false,rightDoor=false
+  let currentCam='office',threats={hall:0,storage:0,vent:0,yard:0,server:0},nightTimer
+  const camNames={office:'Office',hall:'Hall A',storage:'Storage',vent:'Vent',yard:'Yard',server:'Server'}
 
-    // bullet vs tank
-    bullets.forEach((b, i) => {
-      const target = b.owner === 'p1' ? p2 : p1;
-      if (Math.hypot(b.x - target.x, b.y - target.y) < 18) {
-        spawnParticles(target.x, target.y, target.color);
-        bullets.splice(i, 1);
-        target.lives--;
-        document.getElementById(target.isP1 ? 'p1Lives' : 'p2Lives').textContent = target.lives;
-        if (target.lives <= 0) {
-          running = false;
-          setTimeout(() => alert((target.isP1 ? 'Player 2' : 'Player 1') + ' wins!'), 60);
-        }
+  window.switchCam=btn=>{
+    document.querySelectorAll('.cam-btn').forEach(b=>b.classList.remove('active'))
+    btn.classList.add('active')
+    currentCam=btn.dataset.cam
+    document.getElementById('currentCam').textContent=camNames[currentCam]
+    // checking a camera slightly reduces threat in that room
+    if(currentCam!=='office'&&threats[currentCam]>0)threats[currentCam]=Math.max(0,threats[currentCam]-0.4)
+    drawNight()
+  }
+  window.startNight=()=>{
+    if(nightRunning)return
+    nightRunning=true;power=100;hour=0;leftDoor=rightDoor=false
+    threats={hall:0,storage:0,vent:0,yard:0,server:0};currentCam='office'
+    document.getElementById('nightNum').textContent=night
+    document.getElementById('powerLeft').textContent=100
+    document.getElementById('nightTime').textContent='12 AM'
+    document.getElementById('currentCam').textContent='Office'
+    document.querySelectorAll('.cam-btn').forEach(b=>b.classList.toggle('active',b.dataset.cam==='office'))
+    document.getElementById('leftDoorBtn').classList.remove('active')
+    document.getElementById('rightDoorBtn').classList.remove('active')
+    nightTimer=setInterval(()=>{
+      hour++
+      const times=['12 AM','1 AM','2 AM','3 AM','4 AM','5 AM','6 AM']
+      document.getElementById('nightTime').textContent=times[Math.min(hour,6)]
+      // power drain
+      let drain=0.35
+      if(leftDoor)drain+=0.55
+      if(rightDoor)drain+=0.55
+      if(currentCam!=='office')drain+=0.35
+      power=Math.max(0,power-drain)
+      document.getElementById('powerLeft').textContent=Math.floor(power)
+      // threats move
+      Object.keys(threats).forEach(room=>{
+        if(Math.random()<0.12+night*0.035)threats[room]=Math.min(5,threats[room]+0.7)
+      })
+      // attack if threat reaches office doors
+      const leftThreat=(threats.hall+threats.vent)/2
+      const rightThreat=(threats.storage+threats.yard)/2
+      if(leftThreat>=4.2&&!leftDoor){endNight(false);return}
+      if(rightThreat>=4.2&&!rightDoor){endNight(false);return}
+      if(power<=0){endNight(false);return}
+      if(hour>=6){endNight(true);return}
+      drawNight()
+    },3800)
+    drawNight()
+  }
+  function endNight(won){clearInterval(nightTimer);nightRunning=false;if(won){alert('Night '+night+' survived!');night=Math.min(5,night+1)}else{alert('Something got in... Night failed.');night=1}}
+  window.toggleDoor=side=>{
+    if(!nightRunning||power<=0)return
+    if(side==='left'){leftDoor=!leftDoor;document.getElementById('leftDoorBtn').classList.toggle('active',leftDoor)}
+    else{rightDoor=!rightDoor;document.getElementById('rightDoorBtn').classList.toggle('active',rightDoor)}
+    drawNight()
+  }
+  function drawNight(){
+    nCtx.fillStyle='#0a0a12';nCtx.fillRect(0,0,520,280)
+    if(currentCam==='office'){
+      // office view
+      nCtx.fillStyle='#1a1a24';nCtx.fillRect(160,40,200,180)
+      nCtx.fillStyle=leftDoor?'#4ade80':'#2a2a35';nCtx.fillRect(110,55,35,150)
+      nCtx.fillStyle=rightDoor?'#4ade80':'#2a2a35';nCtx.fillRect(375,55,35,150)
+      nCtx.fillStyle='#333';nCtx.fillRect(230,90,60,40) // desk
+      nCtx.fillStyle='#666';nCtx.font='12px sans-serif';nCtx.fillText('YOUR OFFICE',215,30)
+    }else{
+      // camera view of a room
+      nCtx.fillStyle='#111';nCtx.fillRect(40,30,440,200)
+      nCtx.strokeStyle='#333';nCtx.strokeRect(40,30,440,200)
+      nCtx.fillStyle='#67e8f9';nCtx.font='14px sans-serif'
+      nCtx.fillText('CAM: '+camNames[currentCam].toUpperCase(),50,50)
+      const lvl=threats[currentCam]||0
+      if(lvl>0){
+        nCtx.fillStyle=`rgba(255,50,50,${0.15+lvl*0.12})`
+        nCtx.beginPath();nCtx.arc(260,130,12+lvl*8,0,Math.PI*2);nCtx.fill()
+        nCtx.fillStyle='#f87171';nCtx.font='12px sans-serif'
+        nCtx.fillText('Movement detected',200,210)
+      }else{
+        nCtx.fillStyle='#4ade80';nCtx.font='12px sans-serif';nCtx.fillText('Clear',240,140)
       }
-    });
-
-    // particles
-    particles.forEach(p => {
-      p.x += p.dx; p.y += p.dy; p.life--;
-    });
-    particles = particles.filter(p => p.life > 0);
-
-    drawTanks();
-    animId = requestAnimationFrame(loop);
-  }
-  loop();
-}
-
-function fire(tank, owner) {
-  bullets.push({
-    x: tank.x + Math.cos(tank.angle) * 20,
-    y: tank.y + Math.sin(tank.angle) * 20,
-    dx: Math.cos(tank.angle) * tank.bulletSpeed,
-    dy: Math.sin(tank.angle) * tank.bulletSpeed,
-    owner,
-    life: 90
-  });
-}
-
-function spawnParticles(x, y, color) {
-  for (let i = 0; i < 8; i++) {
-    particles.push({
-      x, y,
-      dx: (Math.random()-0.5)*4,
-      dy: (Math.random()-0.5)*4,
-      life: 20 + Math.random()*15,
-      color
-    });
-  }
-}
-
-function drawTanks() {
-  // background
-  tCtx.fillStyle = '#0a0a12';
-  tCtx.fillRect(0, 0, 700, 420);
-
-  // subtle grid
-  tCtx.strokeStyle = '#151520';
-  tCtx.lineWidth = 1;
-  for (let x = 0; x < 700; x += 40) {
-    tCtx.beginPath(); tCtx.moveTo(x, 0); tCtx.lineTo(x, 420); tCtx.stroke();
-  }
-  for (let y = 0; y < 420; y += 40) {
-    tCtx.beginPath(); tCtx.moveTo(0, y); tCtx.lineTo(700, y); tCtx.stroke();
-  }
-
-  // walls
-  walls.forEach(w => {
-    tCtx.fillStyle = '#2a2a38';
-    tCtx.fillRect(w.x, w.y, w.w, w.h);
-    tCtx.strokeStyle = '#3a3a4a';
-    tCtx.strokeRect(w.x, w.y, w.w, w.h);
-  });
-
-  // particles
-  particles.forEach(p => {
-    tCtx.globalAlpha = p.life / 35;
-    tCtx.fillStyle = p.color;
-    tCtx.beginPath();
-    tCtx.arc(p.x, p.y, 2.5, 0, Math.PI*2);
-    tCtx.fill();
-    tCtx.globalAlpha = 1;
-  });
-
-  // tanks
-  [p1, p2].forEach(t => {
-    tCtx.save();
-    tCtx.translate(t.x, t.y);
-    tCtx.rotate(t.angle);
-
-    // body
-    tCtx.fillStyle = t.color;
-    tCtx.beginPath();
-    tCtx.roundRect(-14, -11, 28, 22, 4);
-    tCtx.fill();
-
-    // tracks
-    tCtx.fillStyle = '#1a1a24';
-    tCtx.fillRect(-15, -14, 30, 5);
-    tCtx.fillRect(-15, 9, 30, 5);
-
-    // turret
-    tCtx.fillStyle = t.color;
-    tCtx.beginPath();
-    tCtx.arc(0, 0, 8, 0, Math.PI*2);
-    tCtx.fill();
-
-    // barrel
-    tCtx.fillStyle = '#ddd';
-    tCtx.fillRect(6, -3.5, 18, 7);
-
-    tCtx.restore();
-  });
-
-  // bullets
-  tCtx.fillStyle = '#fbbf24';
-  bullets.forEach(b => {
-    tCtx.beginPath();
-    tCtx.arc(b.x, b.y, 4, 0, Math.PI*2);
-    tCtx.fill();
-  });
-}
-
-const keys = {};
-document.addEventListener('keydown', e => {
-  keys[e.key] = true;
-  if ([' ', 'ArrowUp', 'ArrowDown', 'Enter'].includes(e.key)) e.preventDefault();
-});
-document.addEventListener('keyup', e => keys[e.key] = false);
-
-resetTanks();
-
-// =====================================================
-//  NIGHT SHIFT – Facility 7 (improved original horror)
-// =====================================================
-const nightCanvas = document.getElementById('nightCanvas');
-const nCtx = nightCanvas.getContext('2d');
-
-let nightRunning = false;
-let power = 100, night = 1, hour = 0;
-let leftDoor = false, rightDoor = false, camOpen = false;
-let threatL = 0, threatR = 0, nightTimer;
-let flicker = 0;
-
-function startNight() {
-  if (nightRunning) return;
-  nightRunning = true;
-  power = 100; hour = 0;
-  leftDoor = rightDoor = camOpen = false;
-  threatL = threatR = 0;
-  flicker = 0;
-
-  document.getElementById('nightNum').textContent = night;
-  document.getElementById('powerLeft').textContent = 100;
-  document.getElementById('nightTime').textContent = '12 AM';
-  updateDoorButtons();
-
-  nightTimer = setInterval(() => {
-    hour++;
-    const times = ['12 AM','1 AM','2 AM','3 AM','4 AM','5 AM','6 AM'];
-    document.getElementById('nightTime').textContent = times[Math.min(hour, 6)];
-
-    // power drain
-    let drain = 0.55 + night * 0.08;
-    if (leftDoor) drain += 0.85;
-    if (rightDoor) drain += 0.85;
-    if (camOpen) drain += 0.6;
-    power = Math.max(0, power - drain);
-    document.getElementById('powerLeft').textContent = Math.floor(power);
-
-    // threats become more aggressive
-    const chance = 0.16 + night * 0.05 + hour * 0.02;
-    if (Math.random() < chance) threatL = Math.min(5, threatL + 1);
-    if (Math.random() < chance) threatR = Math.min(5, threatR + 1);
-
-    // random retreat when cameras are on
-    if (camOpen && Math.random() < 0.35) {
-      threatL = Math.max(0, threatL - 1);
-      threatR = Math.max(0, threatR - 1);
     }
-
-    // death
-    if ((threatL >= 5 && !leftDoor) || (threatR >= 5 && !rightDoor) || power <= 0) {
-      endNight(false);
-      return;
-    }
-    if (hour >= 6) {
-      endNight(true);
-      return;
-    }
-
-    flicker = Math.random() < 0.08 ? 8 : Math.max(0, flicker - 1);
-    drawNight();
-  }, 3200);
-
-  drawNight();
-}
-
-function endNight(won) {
-  clearInterval(nightTimer);
-  nightRunning = false;
-  if (won) {
-    alert('Night ' + night + ' survived! Facility remains secure.');
-    night = Math.min(5, night + 1);
-  } else {
-    alert(power <= 0 ? 'Power failure… something got in.' : 'A threat entered the office.');
-    night = 1;
-  }
-  updateDoorButtons();
-}
-
-function toggleDoor(side) {
-  if (!nightRunning || power <= 0) return;
-  if (side === 'left') leftDoor = !leftDoor;
-  else rightDoor = !rightDoor;
-  updateDoorButtons();
-  drawNight();
-}
-
-function toggleCam() {
-  if (!nightRunning || power <= 0) return;
-  camOpen = !camOpen;
-  document.getElementById('camBtn').classList.toggle('active', camOpen);
-  drawNight();
-}
-
-function updateDoorButtons() {
-  document.getElementById('leftDoorBtn').classList.toggle('active', leftDoor);
-  document.getElementById('rightDoorBtn').classList.toggle('active', rightDoor);
-  document.getElementById('camBtn').classList.toggle('active', camOpen);
-}
-
-function drawNight() {
-  // dark office
-  nCtx.fillStyle = '#08080f';
-  nCtx.fillRect(0, 0, 640, 320);
-
-  // floor
-  nCtx.fillStyle = '#12121c';
-  nCtx.fillRect(0, 220, 640, 100);
-
-  // back wall / office
-  nCtx.fillStyle = '#161622';
-  nCtx.fillRect(180, 40, 280, 200);
-
-  // desk
-  nCtx.fillStyle = '#1c1c2a';
-  nCtx.fillRect(230, 180, 180, 50);
-
-  // left door area
-  nCtx.fillStyle = leftDoor ? '#1a3a2a' : '#0e0e16';
-  nCtx.fillRect(40, 50, 90, 180);
-  nCtx.strokeStyle = leftDoor ? '#4ade80' : '#333';
-  nCtx.lineWidth = 3;
-  nCtx.strokeRect(40, 50, 90, 180);
-  nCtx.fillStyle = leftDoor ? '#4ade80' : '#555';
-  nCtx.font = '12px sans-serif';
-  nCtx.fillText(leftDoor ? 'CLOSED' : 'OPEN', 58, 145);
-
-  // right door area
-  nCtx.fillStyle = rightDoor ? '#1a3a2a' : '#0e0e16';
-  nCtx.fillRect(510, 50, 90, 180);
-  nCtx.strokeStyle = rightDoor ? '#4ade80' : '#333';
-  nCtx.strokeRect(510, 50, 90, 180);
-  nCtx.fillStyle = rightDoor ? '#4ade80' : '#555';
-  nCtx.fillText(rightDoor ? 'CLOSED' : 'OPEN', 528, 145);
-
-  // threats (glowing shapes that get closer / bigger)
-  if (threatL > 0) {
-    const alpha = 0.15 + threatL * 0.15;
-    const size = 12 + threatL * 7;
-    nCtx.fillStyle = `rgba(255, 40, 40, ${alpha})`;
-    nCtx.beginPath();
-    nCtx.arc(85, 140, size, 0, Math.PI * 2);
-    nCtx.fill();
-    if (threatL >= 4) {
-      nCtx.fillStyle = `rgba(255, 80, 80, 0.4)`;
-      nCtx.beginPath();
-      nCtx.arc(85, 140, size + 10, 0, Math.PI * 2);
-      nCtx.fill();
+    // static noise when on cam
+    if(currentCam!=='office'){
+      nCtx.fillStyle='rgba(255,255,255,0.03)'
+      for(let i=0;i<40;i++)nCtx.fillRect(Math.random()*520,Math.random()*280,2,2)
     }
   }
-  if (threatR > 0) {
-    const alpha = 0.15 + threatR * 0.15;
-    const size = 12 + threatR * 7;
-    nCtx.fillStyle = `rgba(255, 40, 40, ${alpha})`;
-    nCtx.beginPath();
-    nCtx.arc(555, 140, size, 0, Math.PI * 2);
-    nCtx.fill();
-    if (threatR >= 4) {
-      nCtx.fillStyle = `rgba(255, 80, 80, 0.4)`;
-      nCtx.beginPath();
-      nCtx.arc(555, 140, size + 10, 0, Math.PI * 2);
-      nCtx.fill();
-    }
-  }
+  drawNight()
 
-  // camera overlay
-  if (camOpen) {
-    nCtx.fillStyle = 'rgba(0, 180, 220, 0.08)';
-    nCtx.fillRect(0, 0, 640, 320);
-    nCtx.strokeStyle = 'rgba(0, 200, 255, 0.3)';
-    nCtx.lineWidth = 2;
-    nCtx.strokeRect(10, 10, 620, 300);
-    nCtx.fillStyle = '#67e8f9';
-    nCtx.font = '14px monospace';
-    nCtx.fillText('▶ CAMERAS ACTIVE – threats pushed back', 180, 28);
-  }
+  // ===== SNAKE =====
+  const canvas=document.getElementById('snakeCanvas'),ctx=canvas.getContext('2d')
+  let snake,food,dx,dy,score,sLoop
+  window.startSnake=()=>{snake=[{x:8,y:8}];food={x:12,y:10};dx=1;dy=0;score=0;document.getElementById('snakeScore').textContent=0;if(sLoop)clearInterval(sLoop)
+    sLoop=setInterval(()=>{const head={x:snake[0].x+dx,y:snake[0].y+dy};if(head.x<0||head.x>=16||head.y<0||head.y>=16||snake.some(s=>s.x===head.x&&s.y===head.y)){clearInterval(sLoop);saveScore('snake',score);alert('Game Over! Score: '+score);return}
+      snake.unshift(head);if(head.x===food.x&&head.y===food.y){score+=10;document.getElementById('snakeScore').textContent=score;food={x:Math.floor(Math.random()*16),y:Math.floor(Math.random()*16)}}else snake.pop()
+      ctx.fillStyle='#111';ctx.fillRect(0,0,320,320);ctx.fillStyle='#7c5cff';snake.forEach(s=>ctx.fillRect(s.x*20,s.y*20,19,19));ctx.fillStyle='#ff4d6d';ctx.fillRect(food.x*20,food.y*20,19,19)
+    },110)}
+  document.addEventListener('keydown',e=>{if(e.key==='ArrowUp'&&dy!==1){dx=0;dy=-1}if(e.key==='ArrowDown'&&dy!==-1){dx=0;dy=1}if(e.key==='ArrowLeft'&&dx!==1){dx=-1;dy=0}if(e.key==='ArrowRight'&&dx!==-1){dx=1;dy=0}})
 
-  // power / static flicker
-  if (flicker > 0 || power < 20) {
-    nCtx.fillStyle = `rgba(255,255,255,${0.03 + Math.random() * 0.05})`;
-    nCtx.fillRect(0, 0, 640, 320);
-  }
+  // ===== COD =====
+  const codCanvas=document.getElementById('codCanvas'),codCtx=codCanvas.getContext('2d')
+  let codRunning=false,codKills=0,codHp=100,playerCod={x:210,y:210},bulletsC=[],enemies=[],codKeys={}
+  window.resetCod=()=>{codKills=0;codHp=100;playerCod={x:210,y:210};bulletsC=[];enemies=[];document.getElementById('codKills').textContent=0;document.getElementById('codHp').textContent=100;codRunning=false}
+  window.startCod=()=>{resetCod();codRunning=true
+    (function loop(){if(!codRunning)return
+      if(codKeys['a']||codKeys['ArrowLeft'])playerCod.x-=5;if(codKeys['d']||codKeys['ArrowRight'])playerCod.x+=5
+      bulletsC.forEach(b=>b.y-=7);bulletsC=bulletsC.filter(b=>b.y>-10)
+      if(Math.random()<0.04)enemies.push({x:Math.random()*410,y:-20,speed:1.4})
+      enemies.forEach(e=>{e.y+=e.speed;if(Math.abs(e.x-playerCod.x)<18&&Math.abs(e.y-playerCod.y)<18){codHp-=12;document.getElementById('codHp').textContent=Math.max(0,codHp);e.y=999;if(codHp<=0){codRunning=false;saveScore('cod',codKills);alert('Kills: '+codKills)}}})
+      enemies=enemies.filter(e=>e.y<270)
+      bulletsC.forEach((b,bi)=>{enemies.forEach((e,ei)=>{if(Math.abs(b.x-e.x)<15&&Math.abs(b.y-e.y)<15){enemies.splice(ei,1);bulletsC.splice(bi,1);codKills++;document.getElementById('codKills').textContent=codKills}})})
+      codCtx.fillStyle='#0a0a12';codCtx.fillRect(0,0,440,250);codCtx.fillStyle='#7c5cff';codCtx.fillRect(playerCod.x,playerCod.y,20,20);codCtx.fillStyle='#fbbf24';bulletsC.forEach(b=>codCtx.fillRect(b.x,b.y,4,8));codCtx.fillStyle='#ef4444';enemies.forEach(e=>codCtx.fillRect(e.x,e.y,18,18))
+      requestAnimationFrame(loop)})()}
+  document.addEventListener('keydown',e=>{codKeys[e.key]=true;if(e.key===' '&&codRunning)bulletsC.push({x:playerCod.x+8,y:playerCod.y})})
+  document.addEventListener('keyup',e=>codKeys[e.key]=false)
 
-  // low power warning
-  if (power < 25) {
-    nCtx.fillStyle = 'rgba(255, 50, 50, 0.15)';
-    nCtx.fillRect(0, 0, 640, 320);
-    nCtx.fillStyle = '#ff6b6b';
-    nCtx.font = 'bold 16px sans-serif';
-    nCtx.fillText('LOW POWER', 270, 310);
-  }
-}
+  // ===== COMBO =====
+  let comboSeq=[],comboIdx=0,comboCount=0,comboBest=0,comboActive=false
+  window.startCombo=()=>{comboSeq=[];for(let i=0;i<4;i++)comboSeq.push(['a','s','d',' '][Math.floor(Math.random()*4)]);comboIdx=0;comboCount=0;comboActive=true;document.getElementById('comboCount').textContent=0;document.getElementById('comboSequence').textContent=comboSeq.map(k=>k===' '?'Space':k.toUpperCase()).join(' → ');document.getElementById('comboDisplay').textContent='Go!'}
+  document.addEventListener('keydown',e=>{if(!comboActive)return;const key=e.key.toLowerCase();if(key===comboSeq[comboIdx]||(comboSeq[comboIdx]===' '&&key===' ')){comboIdx++;if(comboIdx>=4){comboCount++;document.getElementById('comboCount').textContent=comboCount;if(comboCount>comboBest){comboBest=comboCount;document.getElementById('comboBest').textContent=comboBest;saveScore('combo',comboBest)}document.getElementById('comboDisplay').textContent='COMBO x'+comboCount;comboSeq=[];for(let i=0;i<4;i++)comboSeq.push(['a','s','d',' '][Math.floor(Math.random()*4)]);comboIdx=0;document.getElementById('comboSequence').textContent=comboSeq.map(k=>k===' '?'Space':k.toUpperCase()).join(' → ')}}})
 
-drawNight();
+  // ===== MUSIC =====
+  const tracks=[
+    {title:"Horizon Pulse",artist:"SoundHelix",src:"https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"},
+    {title:"Night Runner",artist:"SoundHelix",src:"https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3"},
+    {title:"Crystal Drift",artist:"SoundHelix",src:"https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3"},
+    {title:"Electric Dreams",artist:"SoundHelix",src:"https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3"}
+  ]
+  let current=0;const audio=new Audio();const playBtn=document.getElementById('playBtn');const progressMusic=document.getElementById('progressMusic')
+  function loadTrack(i){current=i;audio.src=tracks[i].src;document.getElementById('trackTitle').textContent=tracks[i].title;document.getElementById('trackArtist').textContent=tracks[i].artist;document.querySelectorAll('.playlist li').forEach((li,idx)=>li.classList.toggle('active',idx===i))}
+  window.togglePlay=()=>{if(audio.paused){audio.play();playBtn.textContent='⏸'}else{audio.pause();playBtn.textContent='▶'}}
+  window.nextTrack=()=>{loadTrack((current+1)%tracks.length);audio.play();playBtn.textContent='⏸'}
+  window.prevTrack=()=>{loadTrack((current-1+tracks.length)%tracks.length);audio.play();playBtn.textContent='⏸'}
+  window.seek=e=>{const r=e.currentTarget.getBoundingClientRect();if(audio.duration)audio.currentTime=((e.clientX-r.left)/r.width)*audio.duration}
+  audio.addEventListener('timeupdate',()=>{if(audio.duration)progressMusic.style.width=(audio.currentTime/audio.duration*100)+'%'})
+  audio.addEventListener('ended',nextTrack)
+  tracks.forEach((t,i)=>{const li=document.createElement('li');li.innerHTML=`<span>${t.title}</span><span style="color:var(--muted)">${t.artist}</span>`;li.onclick=()=>{loadTrack(i);audio.play();playBtn.textContent='⏸'};document.getElementById('playlist').appendChild(li)})
+  loadTrack(0)
+  renderLeaderboards()
 </script>
 </body>
 </html>
