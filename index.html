@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>PlayZone – Local AI</title>
+  <title>PlayZone – Local AI + Games</title>
   <style>
     :root {
       --bg: #0f0f13;
@@ -12,170 +12,341 @@
       --accent2: #ff4d6d;
       --text: #f0f0f5;
       --muted: #a0a0b0;
+      --radius: 14px;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: system-ui, sans-serif;
       background: var(--bg);
       color: var(--text);
-      min-height: 100vh;
       line-height: 1.5;
+      min-height: 100vh;
     }
     nav {
-      position: sticky; top: 0; z-index: 50;
+      position: sticky; top: 0; z-index: 100;
       background: rgba(15,15,19,0.95);
       border-bottom: 1px solid #2a2a35;
-      padding: 1rem 1.5rem;
+      padding: 0.9rem 1.5rem;
       display: flex; justify-content: space-between; align-items: center;
+      flex-wrap: wrap; gap: 0.6rem;
     }
     .logo {
-      font-size: 1.4rem; font-weight: 800;
+      font-size: 1.35rem; font-weight: 800;
       background: linear-gradient(90deg, var(--accent), var(--accent2));
       -webkit-background-clip: text; -webkit-text-fill-color: transparent;
     }
-    .nav-links { display: flex; gap: 1rem; align-items: center; }
-    .nav-links button {
-      background: none; border: none; color: var(--muted);
-      font-size: 0.95rem; cursor: pointer;
+    .nav-links { display: flex; gap: 1rem; flex-wrap: wrap; }
+    .nav-links a {
+      color: var(--muted); text-decoration: none; font-size: 0.92rem;
     }
-    .nav-links button:hover { color: var(--text); }
+    .nav-links a:hover { color: var(--text); }
 
     .hero {
-      text-align: center; padding: 3rem 1.5rem 2rem;
+      text-align: center; padding: 2.8rem 1.5rem 2rem;
     }
-    .hero h1 { font-size: clamp(1.8rem, 5vw, 2.8rem); margin-bottom: 0.5rem; }
-    .hero p { color: var(--muted); max-width: 500px; margin: 0 auto 1.5rem; }
+    .hero h1 { font-size: clamp(1.8rem, 5vw, 2.6rem); margin-bottom: 0.4rem; }
+    .hero p { color: var(--muted); max-width: 520px; margin: 0 auto 1.3rem; }
 
     .btn {
-      display: inline-block; padding: 0.7rem 1.4rem;
+      display: inline-block; padding: 0.65rem 1.3rem;
       background: var(--accent); color: white; border: none;
       border-radius: 50px; font-weight: 600; cursor: pointer;
-      font-size: 0.95rem;
+      font-size: 0.9rem; text-decoration: none;
     }
     .btn:disabled { opacity: 0.5; cursor: not-allowed; }
     .btn-secondary { background: transparent; border: 2px solid var(--accent); }
 
-    /* AI Chat */
+    section { max-width: 1000px; margin: 0 auto; padding: 2rem 1.4rem; }
+    section h2 { font-size: 1.6rem; margin-bottom: 0.3rem; }
+    .subtitle { color: var(--muted); margin-bottom: 1.2rem; font-size: 0.95rem; }
+
+    /* AI */
     .ai-panel {
-      max-width: 700px; margin: 0 auto 3rem;
+      max-width: 700px; margin: 0 auto 2.5rem;
       background: var(--card);
       border: 1px solid #2a2a35;
       border-radius: 16px;
       overflow: hidden;
       display: flex; flex-direction: column;
-      height: 520px;
+      height: 480px;
     }
     .ai-header {
-      padding: 1rem 1.2rem;
+      padding: 0.9rem 1.1rem;
       border-bottom: 1px solid #2a2a35;
       display: flex; justify-content: space-between; align-items: center;
       font-weight: 700;
     }
-    .ai-status {
-      font-size: 0.8rem; color: var(--muted); font-weight: 500;
+    .ai-status { font-size: 0.8rem; color: var(--muted); font-weight: 500; }
+    .progress-bar {
+      height: 5px; background: #2a2a35; display: none;
     }
+    .progress-bar.show { display: block; }
+    .progress-fill { height: 100%; background: var(--accent); width: 0%; transition: width 0.25s; }
     .ai-messages {
       flex: 1; overflow-y: auto; padding: 1rem;
-      display: flex; flex-direction: column; gap: 0.8rem;
+      display: flex; flex-direction: column; gap: 0.7rem;
     }
     .bubble {
-      max-width: 85%; padding: 0.75rem 1rem;
-      border-radius: 14px; font-size: 0.93rem; line-height: 1.45;
+      max-width: 85%; padding: 0.7rem 1rem;
+      border-radius: 14px; font-size: 0.9rem; line-height: 1.4;
     }
     .bubble.bot { background: #252532; align-self: flex-start; }
     .bubble.user { background: var(--accent); align-self: flex-end; }
     .ai-input-row {
-      padding: 0.9rem;
+      padding: 0.8rem;
       border-top: 1px solid #2a2a35;
-      display: flex; gap: 0.6rem;
+      display: flex; gap: 0.5rem;
     }
     .ai-input-row input {
-      flex: 1; padding: 0.75rem 1rem;
+      flex: 1; padding: 0.7rem 1rem;
       border-radius: 25px; border: 1px solid #2a2a35;
       background: #12121a; color: var(--text);
     }
     .ai-input-row button {
-      padding: 0.75rem 1.2rem; border-radius: 25px;
+      padding: 0.7rem 1.1rem; border-radius: 25px;
       background: var(--accent); color: white; border: none;
       font-weight: 600; cursor: pointer;
     }
 
-    .progress-bar {
-      height: 6px; background: #2a2a35; border-radius: 3px;
-      margin: 0.5rem 1.2rem 0;
-      overflow: hidden; display: none;
-    }
-    .progress-bar.show { display: block; }
-    .progress-fill {
-      height: 100%; background: var(--accent); width: 0%;
-      transition: width 0.3s;
-    }
-
-    section { max-width: 900px; margin: 0 auto; padding: 2rem 1.5rem; }
+    /* Games */
     .game-area {
-      background: var(--card); border: 1px solid #2a2a35;
-      border-radius: 14px; padding: 1.3rem; text-align: center; margin-bottom: 1.5rem;
+      background: var(--card);
+      border: 1px solid #2a2a35;
+      border-radius: var(--radius);
+      padding: 1.2rem;
+      text-align: center;
+      margin-bottom: 1.4rem;
     }
-    canvas { background: #111; border-radius: 8px; display: block; margin: 0 auto 0.8rem; max-width: 100%; }
+    .score { color: var(--accent); margin-bottom: 0.5rem; }
+    canvas { background: #111; border-radius: 8px; display: block; margin: 0 auto 0.7rem; max-width: 100%; }
+    .game-controls { display: flex; gap: 0.5rem; justify-content: center; flex-wrap: wrap; }
+    .health-bars { display: flex; gap: 1rem; max-width: 480px; margin: 0 auto 0.5rem; }
+    .health-bar-wrap { flex: 1; }
+    .health-bar-wrap span { font-size: 0.8rem; color: var(--muted); }
+    .health-bar { height: 11px; background: #2a2a35; border-radius: 6px; overflow: hidden; margin-top: 2px; }
+    .health-fill { height: 100%; transition: width 0.2s; }
+    .player-health { background: #4ade80; }
+    .enemy-health { background: var(--accent2); }
+    .mash-buttons { display: flex; gap: 0.7rem; justify-content: center; margin: 0.7rem 0; flex-wrap: wrap; }
+    .mash-btn {
+      width: 75px; height: 75px; border-radius: 50%;
+      border: 3px solid var(--accent); background: #1e1e2a;
+      color: white; font-size: 1.15rem; font-weight: 700; cursor: pointer;
+    }
+    .combo-display { font-size: 1.5rem; font-weight: 800; color: var(--accent2); min-height: 2rem; }
+    .memory-board {
+      display: grid; grid-template-columns: repeat(4, 60px);
+      gap: 7px; justify-content: center; margin: 0.6rem auto;
+    }
+    .memory-card {
+      width: 60px; height: 60px; background: var(--accent);
+      border-radius: 9px; display: flex; align-items: center; justify-content: center;
+      font-size: 1.4rem; cursor: pointer; user-select: none;
+    }
+    .memory-card.flipped, .memory-card.matched { background: #2a2a35; }
+
+    /* Movies */
+    .movie-player {
+      background: #000; border-radius: 12px; overflow: hidden;
+      margin-bottom: 0.8rem; aspect-ratio: 16/9;
+    }
+    .movie-player iframe { width: 100%; height: 100%; border: none; }
+    .full-movie-card { margin-bottom: 1.8rem; }
+
+    /* Music */
+    .player {
+      background: var(--card); border: 1px solid #2a2a35;
+      border-radius: var(--radius); padding: 1.2rem;
+      max-width: 480px; margin: 0 auto 1.3rem;
+    }
+    .player-info { text-align: center; margin-bottom: 0.5rem; }
+    .progress {
+      height: 5px; background: #2a2a35; border-radius: 3px;
+      margin: 0.6rem 0; cursor: pointer;
+    }
+    .progress-fill-music {
+      height: 100%; background: var(--accent); width: 0%; border-radius: 3px;
+    }
+    .player-controls {
+      display: flex; justify-content: center; gap: 1.1rem;
+    }
+    .player-controls button {
+      background: none; border: none; color: var(--text);
+      font-size: 1.35rem; cursor: pointer;
+    }
+    .playlist { list-style: none; max-width: 480px; margin: 0 auto; }
+    .playlist li {
+      padding: 0.65rem 0.9rem; border-radius: 9px;
+      display: flex; justify-content: space-between;
+      cursor: pointer;
+    }
+    .playlist li:hover, .playlist li.active { background: #252532; }
+    .playlist li.active { color: var(--accent); }
 
     footer {
-      text-align: center; padding: 2rem;
-      color: var(--muted); font-size: 0.85rem;
-      border-top: 1px solid #2a2a35;
+      text-align: center; padding: 1.8rem;
+      color: var(--muted); font-size: 0.84rem;
+      border-top: 1px solid #2a2a35; margin-top: 1.5rem;
     }
   </style>
 </head>
 <body>
 
 <nav>
-  <div class="logo">PlayZone Local AI</div>
+  <div class="logo">PlayZone</div>
   <div class="nav-links">
-    <button onclick="document.getElementById('aiPanel').scrollIntoView({behavior:'smooth'})">AI Chat</button>
-    <button onclick="document.getElementById('games').scrollIntoView({behavior:'smooth'})">Games</button>
+    <a href="#ai">AI</a>
+    <a href="#games">Games</a>
+    <a href="#movies">Movies</a>
+    <a href="#music">Music</a>
   </div>
 </nav>
 
 <header class="hero">
-  <h1>Local Browser AI</h1>
-  <p>Real language model running completely in your browser. No server, no accounts, everything stays on your device.</p>
+  <h1>Local AI + Games + Movies + Music</h1>
+  <p>Everything runs in your browser. The AI model downloads once and stays on your device.</p>
   <button class="btn" id="loadModelBtn" onclick="loadModel()">Load AI Model</button>
 </header>
 
-<!-- AI PANEL -->
-<div class="ai-panel" id="aiPanel">
-  <div class="ai-header">
-    <span>🤖 Local LLM</span>
-    <span class="ai-status" id="aiStatus">Model not loaded</span>
-  </div>
-  <div class="progress-bar" id="progressBar">
-    <div class="progress-fill" id="progressFill"></div>
-  </div>
-  <div class="ai-messages" id="aiMessages">
-    <div class="bubble bot">Click “Load AI Model” above to download a small language model. After it loads you can chat with it. First load may take a few minutes depending on your internet.</div>
-  </div>
-  <div class="ai-input-row">
-    <input type="text" id="aiInput" placeholder="Type a message..." disabled onkeydown="if(event.key==='Enter')sendMessage()">
-    <button id="sendBtn" onclick="sendMessage()" disabled>Send</button>
-  </div>
-</div>
-
-<section id="games">
-  <h2 style="margin-bottom:1rem">Quick Games</h2>
-  <div class="game-area">
-    <h3>🐍 Snake</h3>
-    <div style="margin-bottom:0.5rem">Score: <span id="snakeScore">0</span></div>
-    <canvas id="snakeCanvas" width="360" height="360"></canvas>
-    <button class="btn" onclick="startSnake()">Start Snake</button>
+<!-- AI -->
+<section id="ai">
+  <div class="ai-panel">
+    <div class="ai-header">
+      <span>🤖 Local LLM</span>
+      <span class="ai-status" id="aiStatus">Model not loaded</span>
+    </div>
+    <div class="progress-bar" id="progressBar">
+      <div class="progress-fill" id="progressFill"></div>
+    </div>
+    <div class="ai-messages" id="aiMessages">
+      <div class="bubble bot">Click “Load AI Model” to download a small language model. First load can take a few minutes. After that it stays cached.</div>
+    </div>
+    <div class="ai-input-row">
+      <input type="text" id="aiInput" placeholder="Type a message..." disabled onkeydown="if(event.key==='Enter')sendMessage()">
+      <button id="sendBtn" onclick="sendMessage()" disabled>Send</button>
+    </div>
   </div>
 </section>
 
+<!-- GAMES -->
+<section id="games">
+  <h2>🎮 Games</h2>
+  <p class="subtitle">All games work offline.</p>
+
+  <div class="game-area">
+    <h3>🐍 Snake</h3>
+    <div class="score">Score: <span id="snakeScore">0</span></div>
+    <canvas id="snakeCanvas" width="360" height="360"></canvas>
+    <div class="game-controls"><button class="btn" onclick="startSnake()">Start</button></div>
+  </div>
+
+  <div class="game-area">
+    <h3>🔫 COD-Style Shooter</h3>
+    <div class="score">Kills: <span id="codKills">0</span> | HP: <span id="codHp">100</span></div>
+    <canvas id="codCanvas" width="480" height="280"></canvas>
+    <div class="game-controls">
+      <button class="btn" onclick="startCod()">Start</button>
+      <button class="btn btn-secondary" onclick="resetCod()">Reset</button>
+    </div>
+  </div>
+
+  <div class="game-area">
+    <h3>⚔️ Arena Fighter</h3>
+    <div class="health-bars">
+      <div class="health-bar-wrap"><span>You</span><div class="health-bar"><div class="health-fill player-health" id="playerHp" style="width:100%"></div></div></div>
+      <div class="health-bar-wrap"><span>Enemy</span><div class="health-bar"><div class="health-fill enemy-health" id="enemyHp" style="width:100%"></div></div></div>
+    </div>
+    <canvas id="fighterCanvas" width="480" height="240"></canvas>
+    <div class="game-controls">
+      <button class="btn" onclick="startFighter()">Start Fight</button>
+      <button class="btn btn-secondary" onclick="resetFighter()">Reset</button>
+    </div>
+  </div>
+
+  <div class="game-area">
+    <h3>💥 Button Mash</h3>
+    <div class="score">Enemy HP: <span id="mashHp">100</span> | Time: <span id="mashTime">15</span>s</div>
+    <div class="mash-buttons">
+      <button class="mash-btn" onmousedown="mashHit(15)">👊</button>
+      <button class="mash-btn" onmousedown="mashHit(20)">🤜</button>
+      <button class="mash-btn" onmousedown="mashHit(25)">🦵</button>
+    </div>
+    <div class="game-controls"><button class="btn" onclick="startMash()">Start</button></div>
+  </div>
+
+  <div class="game-area">
+    <h3>🔥 Combo Trainer</h3>
+    <div class="score">Combo: <span id="comboCount">0</span> | Best: <span id="comboBest">0</span></div>
+    <div class="combo-display" id="comboDisplay">Press the keys!</div>
+    <p style="color:var(--muted);font-size:0.82rem">Sequence: <strong id="comboSequence">A → S → D → Space</strong></p>
+    <div class="game-controls"><button class="btn" onclick="startCombo()">New Combo</button></div>
+  </div>
+
+  <div class="game-area">
+    <h3>🧠 Memory Match</h3>
+    <div class="score">Moves: <span id="memoryMoves">0</span></div>
+    <div class="memory-board" id="memoryBoard"></div>
+    <div class="game-controls"><button class="btn" onclick="initMemory()">New Game</button></div>
+  </div>
+</section>
+
+<!-- MOVIES -->
+<section id="movies">
+  <h2>🎬 Movies</h2>
+  <p class="subtitle">Public domain – full movies you can watch here.</p>
+
+  <div class="full-movie-card">
+    <h4>Night of the Living Dead (1968)</h4>
+    <div class="movie-player">
+      <iframe src="https://archive.org/embed/night_of_the_living_dead" allowfullscreen></iframe>
+    </div>
+  </div>
+
+  <div class="full-movie-card">
+    <h4>Charade (1963)</h4>
+    <div class="movie-player">
+      <iframe src="https://archive.org/embed/Charade19631280x696" allowfullscreen></iframe>
+    </div>
+  </div>
+
+  <div class="full-movie-card">
+    <h4>Nosferatu (1922)</h4>
+    <div class="movie-player">
+      <iframe src="https://archive.org/embed/nosferatu" allowfullscreen></iframe>
+    </div>
+  </div>
+</section>
+
+<!-- MUSIC -->
+<section id="music">
+  <h2>🎵 Music</h2>
+  <p class="subtitle">Free tracks (SoundHelix).</p>
+
+  <div class="player">
+    <div class="player-info">
+      <h3 id="trackTitle">Select a track</h3>
+      <p id="trackArtist" style="color:var(--muted)">—</p>
+    </div>
+    <div class="progress" onclick="seek(event)">
+      <div class="progress-fill-music" id="progressMusic"></div>
+    </div>
+    <div class="player-controls">
+      <button onclick="prevTrack()">⏮</button>
+      <button onclick="togglePlay()" id="playBtn">▶</button>
+      <button onclick="nextTrack()">⏭</button>
+    </div>
+  </div>
+  <ul class="playlist" id="playlist"></ul>
+</section>
+
 <footer>
-  Everything runs locally in your browser • Model is cached after first download
+  Local AI (WebLLM) + Games + Public Domain Movies + Free Music • Everything stays in your browser
 </footer>
 
 <script type="module">
   import * as webllm from "https://esm.run/@mlc-ai/web-llm";
 
+  // ========== LOCAL LLM ==========
   let engine = null;
   let isGenerating = false;
 
@@ -195,7 +366,7 @@
     messagesEl.scrollTop = messagesEl.scrollHeight;
   }
 
-  async function loadModel() {
+  window.loadModel = async function() {
     if (engine) return;
     loadBtn.disabled = true;
     loadBtn.textContent = 'Loading...';
@@ -203,38 +374,31 @@
     progressBar.classList.add('show');
 
     try {
-      // Small & relatively fast model
       const selectedModel = "Llama-3.2-1B-Instruct-q4f32_1-MLC";
-
       engine = await webllm.CreateMLCEngine(selectedModel, {
         initProgressCallback: (report) => {
           statusEl.textContent = report.text || 'Loading...';
-          if (report.progress) {
-            progressFill.style.width = (report.progress * 100) + '%';
-          }
+          if (report.progress) progressFill.style.width = (report.progress * 100) + '%';
         }
       });
-
       statusEl.textContent = 'Model ready';
       progressBar.classList.remove('show');
       inputEl.disabled = false;
       sendBtn.disabled = false;
       loadBtn.textContent = 'Model Loaded';
-      addBubble('Model loaded successfully! You can start chatting now.', 'bot');
+      addBubble('Model loaded! You can chat now.', 'bot');
     } catch (err) {
-      console.error(err);
-      statusEl.textContent = 'Failed to load model';
+      statusEl.textContent = 'Failed to load';
       loadBtn.disabled = false;
       loadBtn.textContent = 'Try Again';
-      addBubble('Failed to load the model. Make sure you are using Chrome/Edge and have a decent GPU. Error: ' + err.message, 'bot');
+      addBubble('Failed to load model. Use Chrome/Edge with a decent GPU. ' + err.message, 'bot');
     }
-  }
+  };
 
-  async function sendMessage() {
+  window.sendMessage = async function() {
     if (!engine || isGenerating) return;
     const text = inputEl.value.trim();
     if (!text) return;
-
     addBubble(text, 'user');
     inputEl.value = '';
     isGenerating = true;
@@ -244,61 +408,267 @@
     try {
       const reply = await engine.chat.completions.create({
         messages: [
-          { role: 'system', content: 'You are a helpful assistant running locally in the user\'s browser on the PlayZone website. Keep answers concise and friendly.' },
+          { role: 'system', content: 'You are a helpful assistant on the PlayZone website. Keep answers short and friendly.' },
           { role: 'user', content: text }
         ],
         temperature: 0.7,
-        max_tokens: 300
+        max_tokens: 280
       });
-
-      const answer = reply.choices[0].message.content;
-      addBubble(answer, 'bot');
+      addBubble(reply.choices[0].message.content, 'bot');
     } catch (err) {
-      addBubble('Error generating response: ' + err.message, 'bot');
+      addBubble('Error: ' + err.message, 'bot');
     }
-
     isGenerating = false;
     sendBtn.disabled = false;
     statusEl.textContent = 'Model ready';
-    inputEl.focus();
-  }
+  };
 
-  // Expose for buttons
-  window.loadModel = loadModel;
-  window.sendMessage = sendMessage;
-
-  // Simple Snake
+  // ========== GAMES ==========
+  // Snake
   const canvas = document.getElementById('snakeCanvas');
   const ctx = canvas.getContext('2d');
-  let snake, food, dx, dy, score, loop;
+  let snake, food, dx, dy, score, gameLoop;
   window.startSnake = function() {
     snake = [{x:8,y:8}]; food = {x:12,y:10}; dx=1; dy=0; score=0;
     document.getElementById('snakeScore').textContent = 0;
-    if (loop) clearInterval(loop);
-    loop = setInterval(() => {
-      const head = {x: snake[0].x + dx, y: snake[0].y + dy};
+    if (gameLoop) clearInterval(gameLoop);
+    gameLoop = setInterval(() => {
+      const head = {x: snake[0].x+dx, y: snake[0].y+dy};
       if (head.x<0||head.x>=18||head.y<0||head.y>=18||snake.some(s=>s.x===head.x&&s.y===head.y)) {
-        clearInterval(loop);
-        alert('Game Over! Score: ' + score);
-        return;
+        clearInterval(gameLoop); alert('Game Over! Score: '+score); return;
       }
       snake.unshift(head);
       if (head.x===food.x && head.y===food.y) {
-        score += 10;
-        document.getElementById('snakeScore').textContent = score;
-        food = {x:Math.floor(Math.random()*18), y:Math.floor(Math.random()*18)};
+        score+=10; document.getElementById('snakeScore').textContent=score;
+        food={x:Math.floor(Math.random()*18),y:Math.floor(Math.random()*18)};
       } else snake.pop();
-      ctx.fillStyle = '#111'; ctx.fillRect(0,0,360,360);
-      ctx.fillStyle = '#7c5cff'; snake.forEach(s => ctx.fillRect(s.x*20, s.y*20, 19, 19));
-      ctx.fillStyle = '#ff4d6d'; ctx.fillRect(food.x*20, food.y*20, 19, 19);
+      ctx.fillStyle='#111'; ctx.fillRect(0,0,360,360);
+      ctx.fillStyle='#7c5cff'; snake.forEach(s=>ctx.fillRect(s.x*20,s.y*20,19,19));
+      ctx.fillStyle='#ff4d6d'; ctx.fillRect(food.x*20,food.y*20,19,19);
     }, 110);
   };
   document.addEventListener('keydown', e => {
-    if (e.key==='ArrowUp' && dy!==1){dx=0;dy=-1;}
-    if (e.key==='ArrowDown' && dy!==-1){dx=0;dy=1;}
-    if (e.key==='ArrowLeft' && dx!==1){dx=-1;dy=0;}
-    if (e.key==='ArrowRight' && dx!==-1){dx=1;dy=0;}
+    if (e.key==='ArrowUp'&&dy!==1){dx=0;dy=-1;}
+    if (e.key==='ArrowDown'&&dy!==-1){dx=0;dy=1;}
+    if (e.key==='ArrowLeft'&&dx!==1){dx=-1;dy=0;}
+    if (e.key==='ArrowRight'&&dx!==-1){dx=1;dy=0;}
   });
+
+  // COD Shooter
+  const codCanvas = document.getElementById('codCanvas');
+  const codCtx = codCanvas.getContext('2d');
+  let codRunning=false, codKills=0, codHp=100, playerCod={x:230,y:240,w:24,h:24}, bullets=[], enemies=[], codKeys={};
+  window.resetCod = function() {
+    codKills=0; codHp=100; playerCod={x:230,y:240,w:24,h:24}; bullets=[]; enemies=[];
+    document.getElementById('codKills').textContent=0;
+    document.getElementById('codHp').textContent=100;
+    codRunning=false;
+  };
+  window.startCod = function() {
+    resetCod(); codRunning=true;
+    function loop() {
+      if (!codRunning) return;
+      if (codKeys['a']||codKeys['ArrowLeft']) playerCod.x-=5;
+      if (codKeys['d']||codKeys['ArrowRight']) playerCod.x+=5;
+      bullets.forEach(b=>b.y-=7); bullets=bullets.filter(b=>b.y>-10);
+      if (Math.random()<0.04) enemies.push({x:Math.random()*450,y:-20,w:22,h:22,speed:1.4+Math.random()});
+      enemies.forEach(e=>{
+        e.y+=e.speed;
+        if (Math.abs(e.x-playerCod.x)<22 && Math.abs(e.y-playerCod.y)<22) {
+          codHp-=12; document.getElementById('codHp').textContent=Math.max(0,codHp);
+          e.y=999;
+          if (codHp<=0){codRunning=false;alert('Kills: '+codKills);}
+        }
+      });
+      enemies=enemies.filter(e=>e.y<300);
+      bullets.forEach((b,bi)=>{
+        enemies.forEach((e,ei)=>{
+          if (Math.abs(b.x-e.x)<18 && Math.abs(b.y-e.y)<18) {
+            enemies.splice(ei,1); bullets.splice(bi,1);
+            codKills++; document.getElementById('codKills').textContent=codKills;
+          }
+        });
+      });
+      codCtx.fillStyle='#0a0a12'; codCtx.fillRect(0,0,480,280);
+      codCtx.fillStyle='#7c5cff'; codCtx.fillRect(playerCod.x,playerCod.y,24,24);
+      codCtx.fillStyle='#fbbf24'; bullets.forEach(b=>codCtx.fillRect(b.x,b.y,4,8));
+      codCtx.fillStyle='#ef4444'; enemies.forEach(e=>codCtx.fillRect(e.x,e.y,22,22));
+      requestAnimationFrame(loop);
+    }
+    loop();
+  };
+  document.addEventListener('keydown', e => {
+    codKeys[e.key]=true;
+    if (e.key===' ' && codRunning) bullets.push({x:playerCod.x+10,y:playerCod.y});
+  });
+  document.addEventListener('keyup', e => codKeys[e.key]=false);
+
+  // Arena Fighter
+  const fCanvas = document.getElementById('fighterCanvas');
+  const fCtx = fCanvas.getContext('2d');
+  let fighterRunning=false, player={x:70,y:140,w:36,h:65,hp:100,attack:0,cd:0,block:false}, enemy={x:370,y:140,w:36,h:65,hp:100,attack:0,cd:0}, keys={}, fLoop;
+  window.resetFighter = function() {
+    player.hp=100; enemy.hp=100; player.x=70; enemy.x=370; player.attack=0; enemy.attack=0; player.block=false;
+    document.getElementById('playerHp').style.width='100%';
+    document.getElementById('enemyHp').style.width='100%';
+    fighterRunning=false;
+    if (fLoop) cancelAnimationFrame(fLoop);
+    drawFighter();
+  };
+  function drawFighter() {
+    fCtx.fillStyle='#111'; fCtx.fillRect(0,0,480,240);
+    fCtx.fillStyle='#1a1a24'; fCtx.fillRect(0,210,480,30);
+    fCtx.fillStyle=player.attack>0?'#a78bfa':'#7c5cff';
+    fCtx.fillRect(player.x,player.y,36,65);
+    fCtx.fillStyle=enemy.attack>0?'#fb7185':'#ff4d6d';
+    fCtx.fillRect(enemy.x,enemy.y,36,65);
+  }
+  window.startFighter = function() {
+    resetFighter(); fighterRunning=true;
+    function update() {
+      if (!fighterRunning) return;
+      if ((keys['a']||keys['ArrowLeft'])&&player.x>10) player.x-=4;
+      if ((keys['d']||keys['ArrowRight'])&&player.x<200) player.x+=4;
+      player.block=!!keys['s'];
+      if ((keys[' ']||keys['w'])&&player.cd<=0&&!player.block) {
+        player.attack=10; player.cd=22;
+        if (Math.abs(player.x-enemy.x)<65) { enemy.hp-=11; document.getElementById('enemyHp').style.width=Math.max(0,enemy.hp)+'%'; }
+      }
+      if (player.attack>0) player.attack--;
+      if (player.cd>0) player.cd--;
+      if (enemy.cd<=0 && Math.random()<0.03) {
+        enemy.attack=10; enemy.cd=30;
+        if (Math.abs(player.x-enemy.x)<65 && !player.block) {
+          player.hp-=9; document.getElementById('playerHp').style.width=Math.max(0,player.hp)+'%';
+        }
+      }
+      if (enemy.attack>0) enemy.attack--;
+      if (enemy.cd>0) enemy.cd--;
+      if (enemy.x>player.x+50) enemy.x-=2; else if (enemy.x<player.x+30) enemy.x+=2;
+      drawFighter();
+      if (player.hp<=0||enemy.hp<=0) {
+        fighterRunning=false;
+        setTimeout(()=>alert(player.hp<=0?'You lost!':'You won!'),50);
+        return;
+      }
+      fLoop=requestAnimationFrame(update);
+    }
+    update();
+  };
+  document.addEventListener('keydown', e=>keys[e.key]=true);
+  document.addEventListener('keyup', e=>keys[e.key]=false);
+
+  // Button Mash
+  let mashHp=100, mashTimer=null, mashTime=15, mashActive=false;
+  window.startMash = function() {
+    if (mashActive) return;
+    mashHp=100; mashTime=15; mashActive=true;
+    document.getElementById('mashHp').textContent=100;
+    document.getElementById('mashTime').textContent=15;
+    mashTimer=setInterval(()=>{
+      mashTime--; document.getElementById('mashTime').textContent=mashTime;
+      if (mashTime<=0){clearInterval(mashTimer);mashActive=false;alert(mashHp<=0?'KO!':'Time up!');}
+    },1000);
+  };
+  window.mashHit = function(dmg) {
+    if (!mashActive||mashHp<=0) return;
+    mashHp=Math.max(0,mashHp-dmg);
+    document.getElementById('mashHp').textContent=mashHp;
+    if (mashHp<=0){clearInterval(mashTimer);mashActive=false;alert('KO!');}
+  };
+
+  // Combo
+  let comboSeq=[], comboIdx=0, comboCount=0, comboBest=0, comboActive=false;
+  window.startCombo = function() {
+    comboSeq=[]; for(let i=0;i<4;i++) comboSeq.push(['a','s','d',' '][Math.floor(Math.random()*4)]);
+    comboIdx=0; comboCount=0; comboActive=true;
+    document.getElementById('comboCount').textContent=0;
+    document.getElementById('comboSequence').textContent=comboSeq.map(k=>k===' '?'Space':k.toUpperCase()).join(' → ');
+    document.getElementById('comboDisplay').textContent='Go!';
+  };
+  document.addEventListener('keydown', e=>{
+    if (!comboActive) return;
+    const key=e.key.toLowerCase();
+    if (key===comboSeq[comboIdx]||(comboSeq[comboIdx]===' '&&key===' ')) {
+      comboIdx++;
+      if (comboIdx>=4) {
+        comboCount++;
+        document.getElementById('comboCount').textContent=comboCount;
+        if (comboCount>comboBest){comboBest=comboCount;document.getElementById('comboBest').textContent=comboBest;}
+        document.getElementById('comboDisplay').textContent='COMBO x'+comboCount;
+        comboSeq=[]; for(let i=0;i<4;i++) comboSeq.push(['a','s','d',' '][Math.floor(Math.random()*4)]);
+        comboIdx=0;
+        document.getElementById('comboSequence').textContent=comboSeq.map(k=>k===' '?'Space':k.toUpperCase()).join(' → ');
+      }
+    }
+  });
+
+  // Memory
+  const emojis=['🚀','🎮','🎬','🎵','🌟','🔥','💎','🦄'];
+  let cards=[], flipped=[], matched=0, moves=0, lock=false;
+  window.initMemory = function() {
+    cards=[...emojis,...emojis].sort(()=>Math.random()-0.5);
+    flipped=[]; matched=0; moves=0; lock=false;
+    document.getElementById('memoryMoves').textContent=0;
+    const board=document.getElementById('memoryBoard');
+    board.innerHTML='';
+    cards.forEach((emoji,i)=>{
+      const card=document.createElement('div');
+      card.className='memory-card';
+      card.onclick=()=>{
+        if (lock||card.classList.contains('flipped')||card.classList.contains('matched')) return;
+        card.classList.add('flipped'); card.textContent=emoji;
+        flipped.push({card,emoji});
+        if (flipped.length===2) {
+          moves++; document.getElementById('memoryMoves').textContent=moves; lock=true;
+          if (flipped[0].emoji===flipped[1].emoji) {
+            flipped.forEach(f=>f.card.classList.add('matched'));
+            matched+=2; flipped=[]; lock=false;
+            if (matched===16) setTimeout(()=>alert('You won!'),300);
+          } else {
+            setTimeout(()=>{
+              flipped.forEach(f=>{f.card.classList.remove('flipped');f.card.textContent='';});
+              flipped=[]; lock=false;
+            },700);
+          }
+        }
+      };
+      board.appendChild(card);
+    });
+  };
+  initMemory();
+
+  // Music
+  const tracks=[
+    {title:"Horizon Pulse",artist:"SoundHelix",src:"https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"},
+    {title:"Night Runner",artist:"SoundHelix",src:"https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3"},
+    {title:"Crystal Drift",artist:"SoundHelix",src:"https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3"},
+    {title:"Neon Streets",artist:"SoundHelix",src:"https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3"},
+    {title:"Electric Dreams",artist:"SoundHelix",src:"https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3"}
+  ];
+  let current=0;
+  const audio=new Audio();
+  const playBtn=document.getElementById('playBtn');
+  const progressMusic=document.getElementById('progressMusic');
+  function loadTrack(i){
+    current=i; audio.src=tracks[i].src;
+    document.getElementById('trackTitle').textContent=tracks[i].title;
+    document.getElementById('trackArtist').textContent=tracks[i].artist;
+    document.querySelectorAll('.playlist li').forEach((li,idx)=>li.classList.toggle('active',idx===i));
+  }
+  window.togglePlay=function(){if(audio.paused){audio.play();playBtn.textContent='⏸';}else{audio.pause();playBtn.textContent='▶';}};
+  window.nextTrack=function(){loadTrack((current+1)%tracks.length);audio.play();playBtn.textContent='⏸';};
+  window.prevTrack=function(){loadTrack((current-1+tracks.length)%tracks.length);audio.play();playBtn.textContent='⏸';};
+  window.seek=function(e){const r=e.currentTarget.getBoundingClientRect();if(audio.duration)audio.currentTime=((e.clientX-r.left)/r.width)*audio.duration;};
+  audio.addEventListener('timeupdate',()=>{if(audio.duration)progressMusic.style.width=(audio.currentTime/audio.duration*100)+'%';});
+  audio.addEventListener('ended',nextTrack);
+  tracks.forEach((t,i)=>{
+    const li=document.createElement('li');
+    li.innerHTML=`<span>${t.title}</span><span style="color:var(--muted)">${t.artist}</span>`;
+    li.onclick=()=>{loadTrack(i);audio.play();playBtn.textContent='⏸';};
+    document.getElementById('playlist').appendChild(li);
+  });
+  loadTrack(0);
 </script>
 </body>
 </html>
